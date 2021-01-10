@@ -1,0 +1,14 @@
+﻿  application.cpp
+D:\lessons\computer graphics\assignments\hierarchical_zbuffer\fps_camera.h(37,1): warning C4244: “+=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+D:\lessons\computer graphics\assignments\hierarchical_zbuffer\fps_camera.h(38,1): warning C4244: “+=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+D:\lessons\computer graphics\assignments\hierarchical_zbuffer\application.h(64,63): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+D:\lessons\computer graphics\assignments\hierarchical_zbuffer\application.cpp(137,49): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+  hierarchical_zbuffer.vcxproj -> D:\lessons\computer graphics\assignments\x64\Debug\hierarchical_zbuffer.exe

@@ -1,0 +1,11 @@
+﻿  glad.c
+  application.cpp
+  main.cpp
+  model.cpp
+  object3d.cpp
+D:\lessons\computer graphics\assignments\hierarchical_zbuffer\object3d.cpp(74,25): warning C4267: “return”: 从“size_t”转换到“uint32_t”，可能丢失数据
+  正在生成代码
+  Previous IPDB not found, fall back to full compilation.
+  All 719 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  已完成代码的生成
+  hierarchical_zbuffer.vcxproj -> D:\lessons\computer graphics\assignments\x64\Release\hierarchical_zbuffer.exe
