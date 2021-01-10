@@ -36,7 +36,12 @@ Application::Application() {
 		exit(EXIT_FAILURE);
 	}
 
+	std::vector<Vertex> _vertices;
+	std::vector<uint32_t> _indices;
 	_model.getFaces(_vertices, _indices);
+	for (int i = 0; i < _indices.size(); i += 3) {
+		_triangles.push_back({ _vertices[i], _vertices[i + 1] , _vertices[i + 2] });
+	}
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
 }

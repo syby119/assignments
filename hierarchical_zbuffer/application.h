@@ -57,8 +57,7 @@ private:
 	Model _model{ "../resources/bunny.obj" };
 
 	/* triangle data: local space */
-	std::vector<Vertex> _vertices;
-	std::vector<uint32_t> _indices;
+	std::vector<Triangle> _triangles;
 
 	///* camera */
 	FpsCamera _fpsCamera{glm::radians(54.0f), 1.0 * _windowWidth / _windowHeight};

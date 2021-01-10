@@ -30,6 +30,9 @@
     <ClCompile Include="application.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="quadtree.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -57,6 +60,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="application.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="quadtree.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

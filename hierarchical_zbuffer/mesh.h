@@ -28,3 +28,7 @@ struct Mesh {
 	std::vector<uint32_t> indices;
 	std::vector<Texture> textures;
 };
+
+struct Triangle {
+	Vertex v[3];
+};
