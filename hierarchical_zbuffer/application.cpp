@@ -109,7 +109,7 @@ void Application::_initShaders() {
 		"#version 330 core\n"
 		"layout(location = 0) in vec3 aPosition;\n"
 		"layout(location = 1) in vec3 aNormal;\n"
-	  "layout(location = 2) in vec2 aTexCoord;\n"
+		"layout(location = 2) in vec2 aTexCoord;\n"
 		"out vec3 normal;\n"
 		"uniform mat4 model;\n"
 		"uniform mat4 view;\n"

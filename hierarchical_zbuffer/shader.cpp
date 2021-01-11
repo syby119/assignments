@@ -9,15 +9,19 @@ Shader::Shader(const char* vsCode, const char* fsCode) {
     _createShaderProgram(vsCode, fsCode);
 }
 
-
 /*
  * @brief constructor, read shader code from file to create opengl shader
  */
-Shader::Shader(const std::string& vsFilepath, const std::string& fsFilepath) {
-    std::string vsCode = _readFile(vsFilepath);
-    std::string fsCode = _readFile(fsFilepath);
+//Shader::Shader(const std::string& vsFilepath, const std::string& fsFilepath) {
+//    std::string vsCode = _readFile(vsFilepath);
+//    std::string fsCode = _readFile(fsFilepath);
+//
+//    _createShaderProgram(vsCode, fsCode);
+//}
 
-    _createShaderProgram(vsCode, fsCode);
+Shader::Shader(Shader&& shader) noexcept {
+    _id = shader._id;
+    shader._id = 0;
 }
 
 
@@ -165,7 +169,6 @@ GLuint Shader::_createShader(const std::string& code, GLenum shaderType) {
 
     return shader;
 }
-
 
 
 /*
