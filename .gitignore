@@ -1,0 +1,4 @@
+# VS file
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
