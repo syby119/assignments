@@ -65,7 +65,7 @@ public:
 	virtual void lookAt(glm::vec3 worldPosition, glm::vec3 worldUp) = 0;
 
 protected:
-	/* camera attributes: field of view */
+	/* camera attributes: field of view in radians */
 	float _fov;
 	/* camera attributes: aspect ratio */
 	float _aspect;

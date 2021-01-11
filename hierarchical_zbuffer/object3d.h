@@ -170,6 +170,45 @@ public:
 	glm::mat4x4 getModelMatrixInverse() const;
 
 	/*
+	 * @brief print local position info
+	 */
+	void printPosition() const;
+
+	/*
+	 * @brief print local rotation info
+	 */
+	void printRotation() const ;
+
+	/*
+	 * @brief print local scale info
+	 */
+	void printScale() const;
+
+	/*
+	 * @brief print vec3
+	 */
+	static void print(const glm::vec3& v);
+
+	/*
+	 * @brief print vec3
+	 */
+	static void print(const glm::vec4& v);
+	/*
+	 * @brief print quat
+	 */
+	static void print(const glm::quat& q);
+
+	/*
+	 * @brief print mat3x3
+	 */
+	static void print(const glm::mat3x3& m);
+
+	/*
+	 * @brief print mat4x4
+	 */
+	static void print(const glm::mat4x4& m);
+
+	/*
 	 * @brief transform euler angles to quaternion
 	 */
 	static glm::quat eulerAnglesToQuaternion(const glm::vec3& eulerAngles, enum RotateOrder order);

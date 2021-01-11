@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cmath>
+#include <iostream>
 
 #include "object3d.h"
 
@@ -262,6 +263,88 @@ glm::mat4x4 Object3D::getModelMatrix() const {
  */
 glm::mat4x4 Object3D::getModelMatrixInverse() const {
 	return glm::inverse(getModelMatrix());
+}
+
+
+/*
+ * @brief print local position info
+ */
+void Object3D::printPosition() const {
+	std::cout << _name << ": position";
+	print(_localPosition);
+	std::cout << std::endl;
+}
+
+
+/*
+ * @brief print local rotation info
+ */
+void Object3D::printRotation() const {
+	std::cout << _name << ": rotation";
+	print(_localRotation);
+	std::cout << std::endl;
+}
+
+
+/*
+ * @brief print local scale info
+ */
+void Object3D::printScale() const {
+	std::cout << _name << ": scale";
+	print(_localScale);
+	std::cout << std::endl;
+}
+
+
+/*
+ * @brief print vec3
+ */
+void Object3D::print(const glm::vec3& v) {
+	std::cout << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")";
+}
+
+
+/*
+ * @brief print vec4
+ */
+void Object3D::print(const glm::vec4& v) {
+	std::cout << "(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ")";
+}
+
+
+/*
+ * @brief print quat
+ */
+void Object3D::print(const glm::quat& q) {
+	std::cout << "(" << q[0] << ", " << q[1] << ", " << q[2] << ", " << q[3] << ")";
+}
+
+
+/*
+ * @brief print mat3x3
+ */
+void Object3D::print(const glm::mat3x3& m) {
+	for (int i = 0; i < 3; ++i) {
+		std::cout << m[0][i];
+		for (int j = 0; j < 3; ++j) {
+			std::cout << ", " << m[j][i];
+		}
+		std::cout << ")\n";
+	}
+}
+
+
+/*
+ * @brief print mat4x4
+ */
+void Object3D::print(const glm::mat4x4& m) {
+	for (int i = 0; i < 4; ++i) {
+		std::cout << m[0][i];
+		for (int j = 1; j < 4; ++j) {
+			std::cout << ", " << m[j][i];
+		}
+		std::cout << "\n";
+	}
 }
 
 

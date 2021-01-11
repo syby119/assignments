@@ -1,10 +1,11 @@
 #pragma once
 
 #include <array>
+#include <iostream>
 #include <GLFW/glfw3.h>
 
 struct KeyboardInput {
-	std::array<bool, GLFW_KEY_LAST + 1> keyPressed = { GLFW_FALSE };
+	std::array<bool, GLFW_KEY_LAST + 1> keyPressed = { false };
 };
 
 struct MouseInput {
