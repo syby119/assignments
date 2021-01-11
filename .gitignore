@@ -2,3 +2,15 @@
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+
+# vs temp directory
+.vs/
+
+# exe directory
+x64/
+
+# lib directory
+external/
+
+# exe tmp directory
+/hierarchical_zbuffer/x64/
