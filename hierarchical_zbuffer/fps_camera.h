@@ -6,11 +6,14 @@
 class FpsCamera: public PerspectiveCamera {
 public:
 	FpsCamera(float fov, float aspect, float znear = 0.1f, float zfar = 10000.0f)
-		: PerspectiveCamera(fov, aspect, znear, zfar) {}
+		: PerspectiveCamera(fov, aspect, znear, zfar) {
+		_name = "fps camera";
+	}
 
 
 	void update(const KeyboardInput& keyboardInput, const MouseInput& mouseInput, float deltaTime) {
-		glm::vec3 movement;
+		glm::vec3 movement(0.0f);
+
 		if (keyboardInput.keyPressed[GLFW_KEY_W]) {
 			movement += _speed * deltaTime * glm::vec3(0.0f, 0.0f, -1.0f);
 		}
@@ -28,15 +31,19 @@ public:
 		}
 
 		translate(movement, Object3D::Space::Local);
+		//printPosition();
+		//print(getViewMatrix());
+		//printRotation();
+		//printScale();
 
-		double xoffset = mouseInput.move.xCurrent - mouseInput.move.xOld;
-		// OpenGL flip y-axis 
-		double yoffset = -(mouseInput.move.yCurrent - mouseInput.move.yOld);
+		//double xoffset = mouseInput.move.xCurrent - mouseInput.move.xOld;
+		//// OpenGL flip y-axis 
+		//double yoffset = -(mouseInput.move.yCurrent - mouseInput.move.yOld);
 
-		glm::vec3 eulerAngles = getLocalEulerAngles(Object3D::RotateOrder::ZXY);
-		eulerAngles.x += yoffset * _sensitivity;
-		eulerAngles.y += xoffset * _speed; 
-		rotate(eulerAngles, Object3D::RotateOrder::ZXY);
+		//glm::vec3 eulerAngles = getLocalEulerAngles(Object3D::RotateOrder::ZXY);
+		//eulerAngles.x += yoffset * _sensitivity;
+		//eulerAngles.y += xoffset * _speed; 
+		//rotate(eulerAngles, Object3D::RotateOrder::ZXY);
 	}
 
 	void lookAt(glm::vec3 worldPosition, glm::vec3 worldUp) override {

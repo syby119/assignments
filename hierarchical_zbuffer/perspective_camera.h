@@ -8,6 +8,6 @@ public:
 		: Camera(fov, aspect, znear, zfar) { }
 
 	glm::mat4x4 getProjectionMatrix() override {
-		return glm::perspective(glm::radians(_fov), _aspect, _znear, _zfar);
+		return glm::perspective(_fov, _aspect, _znear, _zfar);
 	}
 };

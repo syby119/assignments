@@ -1,3 +1,6 @@
+//#define SHOW_CALLBACK
+//#define SHOW_RENDER_INFO
+
 #include "application.h"
 
 /*
@@ -36,11 +39,25 @@ Application::Application() {
 		exit(EXIT_FAILURE);
 	}
 
+	if (_renderMode == RenderMode::Gpu) {
+		glEnable(GL_DEPTH_TEST);
+	}
+
+	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 5.0f));
+
+
+	_loadModels();
+	_initShaders();
+
 	std::vector<Vertex> _vertices;
 	std::vector<uint32_t> _indices;
-	_model.getFaces(_vertices, _indices);
-	for (int i = 0; i < _indices.size(); i += 3) {
-		_triangles.push_back({ _vertices[i], _vertices[i + 1] , _vertices[i + 2] });
+	for (const auto& model : _models) {
+		model.getFaces(_vertices, _indices);
+	}
+
+	for (size_t i = 0; i < _indices.size(); i += 3) {
+		_triangles.push_back({ 
+			_vertices[_indices[i]], _vertices[_indices[i + 1]] , _vertices[_indices[i + 2]] });
 	}
 
 	// new tree
@@ -86,12 +103,62 @@ void Application::run() {
 
 
 /*
+ * @brief load models from model path
+ */
+void Application::_loadModels() {
+	for (const auto filepath : _modelFilepaths) {
+		std::cout << "loading " + filepath + "..." << std::endl;
+		_models.push_back(Model(filepath));
+		std::cout << "+ vertices: " << _models.back().getVertexCount() << std::endl;
+		std::cout << "+ faces:    " << _models.back().getFaceCount() << std::endl;
+	}
+}
+
+
+/* @brief init shaders */
+void Application::_initShaders() {
+	// vertex shader code
+	const char* vsCode =
+		"#version 330 core\n"
+		"layout(location = 0) in vec3 aPosition;\n"
+		"layout(location = 1) in vec3 aNormal;\n"
+	  "layout(location = 2) in vec2 aTexCoord;\n"
+		"out vec3 normal;\n"
+		"uniform mat4 model;\n"
+		"uniform mat4 view;\n"
+		"uniform mat4 projection;\n"
+		"void main() {\n"
+		"	normal = mat3(transpose(inverse(model))) * aNormal;\n"
+		"	gl_Position = projection * view * model * vec4(aPosition, 1.0);\n"
+		"}\n";
+
+	// fragment shader code
+	const char* fsCode =
+		"#version 330 core\n"
+		"in vec3 normal;\n"
+		"out vec4 color;\n"
+		"void main() {\n"
+		"	vec3 objectColor = vec3(1.0, 0.0, 0.0);\n"
+		"	vec3 lightColor = vec3(1.0, 1.0, 1.0);\n"
+		"	vec3 ambient = 0.1 * lightColor;\n"
+		"	vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));\n"
+		"	vec3 norm = normalize(normal);\n"
+		"	vec3 diffuse = max(dot(norm, lightDir), 0.0) * lightColor;\n"
+		"	vec3 result = (ambient + diffuse) * objectColor;\n"
+		"	color = vec4(result, 1.0);\n"
+		"}\n";
+
+	_shaders.push_back(Shader(vsCode, fsCode));
+}
+
+
+/*
  * @brief update time
  */
 void Application::_updateTime() {
-	auto currentTimeStamp = std::chrono::high_resolution_clock::now();
-	_deltaTime = 0.001f * std::chrono::duration<double, std::milli>().count();
-	_lastTimeStamp = currentTimeStamp;
+	auto now = std::chrono::high_resolution_clock::now();
+	_deltaTime = 0.001f * std::chrono::duration<double, std::milli>(now - _lastTimeStamp).count();
+	_lastTimeStamp = now;
 }
 
 
@@ -115,36 +182,39 @@ void Application::_cursorMovedCallback(GLFWwindow* window, double xPos, double y
  * @brief response key press event
  */
 void Application::_keyPressedCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
 	if (action == GLFW_PRESS) {
-		Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
 		if (key != GLFW_KEY_UNKNOWN) {
 			app->_keyboardInput.keyPressed[key] = true;
 		}
+	} else if (action == GLFW_RELEASE) {
+		if (key != GLFW_KEY_UNKNOWN) {
+			app->_keyboardInput.keyPressed[key] = false;
+		}
+	}
 
 #ifdef SHOW_CALLBACK
 #ifndef NDEBUG
-		auto getKeyInfo = [](int key, int scancode) {
-			std::string keyInfo;
-			if (glfwGetKeyName(key, scancode)) {
-				keyInfo = std::string(glfwGetKeyName(key, scancode)) + "(" + std::to_string(key) + ")";
-			}
-			else {
-				keyInfo = std::string("unprintable key") + "(" + std::to_string(key) + ")";
-			}
-
-			return keyInfo;
-		};
-
-		std::cout << "key " << getKeyInfo(key, scancode) << " pressed" << std::endl;
-		std::cout << " ------ Pressed Key Table -------" << std::endl;
-		for (int i = 0; i < app->_keyboardInput.keyPressed.size(); ++i) {
-			if (app->_keyboardInput.keyPressed[key]) {
-				std::cout << "\t" << getKeyInfo(i, 0) << std::endl;
-			}
+	auto getKeyInfo = [](int key, int scancode) {
+		std::string keyInfo;
+		if (glfwGetKeyName(key, scancode)) {
+			keyInfo = std::string(glfwGetKeyName(key, scancode)) + "(" + std::to_string(key) + ")";
+		} else {
+			keyInfo = std::string("unprintable key") + "(" + std::to_string(key) + ")";
 		}
-#endif
-#endif
+
+		return keyInfo;
+	};
+
+	std::cout << "key " << getKeyInfo(key, scancode) << " pressed" << std::endl;
+	std::cout << " ------ Pressed Key Table -------" << std::endl;
+	for (int i = 0; i < app->_keyboardInput.keyPressed.size(); ++i) {
+		if (app->_keyboardInput.keyPressed[i]) {
+			std::cout << "\t" << getKeyInfo(i, 0) << std::endl;
+		}
 	}
+#endif
+#endif
 }
 
 
@@ -154,9 +224,9 @@ void Application::_keyPressedCallback(GLFWwindow* window, int key, int scancode,
 void Application::_handleInput() {
 	_fpsCamera.update(_keyboardInput, _mouseInput, _deltaTime);
 	
-	for (auto& keyPress : _keyboardInput.keyPressed) {
-		keyPress = false;
-	}
+	//for (auto& keyPress : _keyboardInput.keyPressed) {
+	//	keyPress = false;
+	//}
 
 	_mouseInput.move.xOld = _mouseInput.move.xCurrent;
 	_mouseInput.move.yOld = _mouseInput.move.yCurrent;
@@ -168,6 +238,9 @@ void Application::_handleInput() {
 void Application::_renderFrame() {
 	auto start = std::chrono::high_resolution_clock::now();
 	switch (_renderMode) {
+		case RenderMode::Gpu:
+			_renderWithGpu();
+			break;
 		case RenderMode::ScanLineZBuffer:
 			_renderWithScanLineZBuffer();
 			break;
@@ -179,9 +252,41 @@ void Application::_renderFrame() {
 			break;
 	}
 	auto stop = std::chrono::high_resolution_clock::now();
-	auto milliseconds = std::chrono::duration<double, std::milli>().count();
+	auto milliseconds = std::chrono::duration<double, std::milli>(stop - start).count();
 
-	std::cout << "+ render time: " << milliseconds << " ms" << std::endl;
+	//std::cout << "+ render time: " << milliseconds << " ms" << std::endl;
+}
+
+void Application::_renderWithGpu() {
+	glClearColor(_clearColor[0], _clearColor[1], _clearColor[2], _clearColor[3]);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glm::mat4 p = _fpsCamera.getProjectionMatrix();
+	//std::cout << "projection matrix: " << std::endl;
+	//Object3D::print(p);
+	//std::cout << std::endl;
+
+	glm::mat4 v = _fpsCamera.getViewMatrix();
+	//std::cout << "view matrix: " << std::endl;
+	//Object3D::print(v);
+	//std::cout << std::endl;
+
+	_shaders[0].use();
+	_shaders[0].setMat4("projection", p);
+	_shaders[0].setMat4("view", v);
+	
+	for (const auto& model : _models) {
+		// mvp matrices
+		glm::mat4 m = model.getModelMatrix();
+		//std::cout << "model matrix: " << std::endl;
+		//Object3D::print(m);
+		//std::cout << std::endl;
+		_shaders[0].setMat4("model", m);
+
+		model.draw(_shaders[0]);
+	}
+
+	glfwSwapBuffers(_window);
 }
 
 void Application::_renderWithScanLineZBuffer() {
