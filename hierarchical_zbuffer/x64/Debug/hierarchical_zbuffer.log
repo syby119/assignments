@@ -1,4 +1,30 @@
-﻿  quadtree.cpp
+﻿  application.cpp
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\fps_camera.h(37): warning C4244: “+=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\fps_camera.h(38): warning C4244: “+=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\application.h(67): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\application.cpp(155): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\application.cpp(196): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
+  main.cpp
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\fps_camera.h(37): warning C4244: “+=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\fps_camera.h(38): warning C4244: “+=”: 从“double”转换到“T”，可能丢失数据
+          with
+          [
+              T=float
+          ]
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\application.h(67): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+  quadtree.cpp
 d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(8): warning C4244: “参数”: 从“float”转换到“int”，可能丢失数据
-LINK : warning LNK4098: 默认库“MSVCRT”与其他库的使用冲突；请使用 /NODEFAULTLIB:library
+  正在生成代码...
   hierarchical_zbuffer.vcxproj -> D:\Desktop\senior\graphics\assignments\x64\Debug\hierarchical_zbuffer.exe

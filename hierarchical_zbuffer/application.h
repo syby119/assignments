@@ -12,6 +12,7 @@
 #include "fps_camera.h"
 #include "input.h"
 #include "model.h"
+#include "quadtree.h"
 
 #define SHOW_CALLBACK
 
@@ -48,6 +49,9 @@ private:
 	int _windowWidth = 1280;
 	int _windowHeight = 720;
 	glm::vec3 _clearColor = glm::vec3(0.0f, 0.0f, 0.0f);
+
+	/* trees */
+	QuadTree* _quadTree;
 
 	/* time */
 	std::chrono::time_point<std::chrono::high_resolution_clock> _lastTimeStamp;

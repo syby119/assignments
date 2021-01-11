@@ -43,6 +43,19 @@ Application::Application() {
 		_triangles.push_back({ _vertices[i], _vertices[i + 1] , _vertices[i + 2] });
 	}
 
+	// new tree
+	switch (_renderMode) {
+	case RenderMode::ScanLineZBuffer:
+
+		break;
+	case RenderMode::HierarchicalZBuffer:
+		_quadTree = new QuadTree(_windowWidth, _windowHeight);
+		break;
+	case RenderMode::OctreeHierarchicalZBuffer:
+		
+		break;
+	}
+
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
 }
 
@@ -176,7 +189,20 @@ void Application::_renderWithScanLineZBuffer() {
 }
 
 void Application::_renderWithHierarchicalZBuffer() {
-	/* write your code here */
+	glm::mat4x4 view = _fpsCamera.getViewMatrix();
+	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();
+	for (int i = 0; i < _triangles.size(); ++i) {
+		int screenX[3], screenY[3];
+		int maxZ = _quadTree->calTriangle(_triangles[i], view, projection, screenX, screenY);
+		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY);
+		if (node->z < maxZ) {
+			// 扫面线遍历三角形，更新quadTree
+
+		}
+	}
+
+	// 取用frameBuffer 渲染一帧
+
 }
 
 void Application::_renderWithOctreeHierarchicalZBuffer() {

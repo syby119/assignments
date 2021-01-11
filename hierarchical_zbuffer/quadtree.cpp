@@ -1,10 +1,10 @@
 #include "quadtree.h"
 
 QuadTree::QuadTree(int Width, int Height) {
-	width = Width;
-	height = Height;
-	frameBuffer = new float[width * height];
+	width = Width, height = Height;
+	frameBuffer = new float[width*height];
 	zBuffer = new float[width*height];
+	indexNodeBuffer = new uint32_t[width*height];
 	memset(zBuffer, FLT_MIN, width*height * sizeof(float));
 	root = new QuadTreeNode(1);
 
@@ -19,8 +19,11 @@ void QuadTree::buildQuadTree() {
 
 void QuadTree::splitNode(QuadTreeNode* node) {
 	QuadBoundingBox* box = node->box;
-	if (box->xr - box->xl <= 1 && box->yr - box->yl <= 1)
+	// 存储叶子节点索引到indexNodeBuffer
+	if (box->xr - box->xl <= 1 && box->yr - box->yl <= 1) {
+		indexNodeBuffer[box->yl * width + box->xl] = node->locCode;
 		return;
+	}
 
 	for (int i = 0; i < 4; ++i) {
 		if ((box->xr <= box->centerX && i & 1) ||
@@ -54,6 +57,43 @@ void QuadTree::splitNode(QuadTreeNode* node) {
 			splitNode(child);
 		}
 	}
+}
+
+
+
+float QuadTree::calTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection, int* screenX, int* screenY) {
+	float maxZ = FLT_MIN;
+	for (int i = 0; i < 3; ++i) {
+		glm::vec4 Vv = view * glm::vec4(tri.v[i].position, 1.0);
+		maxZ = std::max(maxZ, Vv.z);
+		glm::vec4 PVv = projection * Vv;
+		screenX[i] = int((PVv.x / PVv.w + 1.0f) * width / 2);
+		screenY[i] = int((PVv.y / PVv.w + 1.0f) * height / 2);
+	}
+	return maxZ;
+}
+
+QuadTreeNode* QuadTree::searchNode(int* screenX, int* screenY) {
+	bool flag = true;
+	QuadTreeNode* node = root;
+	while (flag) {
+		uint8_t quadCode[3] = { 0, 0, 0 };
+		for (int i = 0; i < 3; ++i) {
+			quadCode[i] |= screenX[i] < node->box->centerX ? 0 : 1;
+			quadCode[i] <<= 1;
+			quadCode[i] |= screenY[i] < node->box->centerY ? 0 : 1;
+		}
+		if (quadCode[0] == quadCode[1] &&
+			quadCode[1] == quadCode[2] &&
+			node->childExists&(1<<quadCode[0])) {
+			uint32_t locCodeChild = node->locCode << 2 | quadCode[0];
+			node = &nodes[locCodeChild];
+		}
+		else {
+			flag = false;
+		}
+	}
+	return node;
 }
 
 QuadTreeNode* QuadTree::getParentNode(QuadTreeNode* node) {
