@@ -1,5 +1,5 @@
 //#define SHOW_CALLBACK
-//#define SHOW_RENDER_INFO
+#define SHOW_RENDER_INFO
 
 #include "application.h"
 
@@ -43,7 +43,7 @@ Application::Application() {
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 5.0f));
+	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 10.0f));
 
 
 	_loadModels();
@@ -280,16 +280,18 @@ void Application::_renderFrame() {
 			_renderWithScanLineZBuffer();
 			break;
 		case RenderMode::HierarchicalZBuffer:
-			_renderWithScanLineZBuffer();
+			_renderWithHierarchicalZBuffer();
 			break;
 		case RenderMode::OctreeHierarchicalZBuffer:
-			_renderWithScanLineZBuffer();
+			_renderWithOctreeHierarchicalZBuffer();
 			break;
 	}
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto milliseconds = std::chrono::duration<double, std::milli>(stop - start).count();
 
-	//std::cout << "+ render time: " << milliseconds << " ms" << std::endl;
+#ifdef SHOW_RENDER_INFO
+	std::cout << "+ render time: " << milliseconds << " ms" << std::endl;
+#endif
 }
 
 void Application::_renderWithGpu() {
@@ -324,25 +326,32 @@ void Application::_renderWithScanLineZBuffer() {
 }
 
 void Application::_renderWithHierarchicalZBuffer() {
+	_framebuffer->clear(_clearColor);
+
 	glm::mat4x4 view = _fpsCamera.getViewMatrix();
 	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();
 	for (int i = 0; i < _triangles.size(); ++i) {
 		int screenX[3], screenY[3];
 		float screenZ[3];
-		int maxZ = _quadTree->calTriangle(_triangles[i], view, projection, screenX, screenY, screenZ);
+		float maxZ = _quadTree->calTriangle(_triangles[i], view, projection, screenX, screenY, screenZ);
 		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY);
 		if (node->z < maxZ) {
 			// 扫面线遍历三角形，更新quadTree
-			float cos = glm::dot(_quadTree->lightDirection, _triangles[i].v->normal);
+			float cos = -glm::dot(_quadTree->lightDirection, _triangles[i].v[0].normal);
 			if (cos <= 0)
 				continue;
 			glm::vec3 color = cos * _quadTree->lightColor;
-			_quadTree->renderTriangle(screenX, screenY, screenZ, color);
+			_quadTree->renderTriangle(screenX, screenY, screenZ, color, *_framebuffer);
 		}
 	}
 
 	// 取用frameBuffer 渲染一帧
-
+	/*for (int i = 0; i < _windowWidth; ++i) {
+		for (int j = 0; j < _windowHeight; ++j) {
+			_framebuffer->setPixel(i, j, _quadTree->getFrameBuffer()[j*_windowWidth + i]);
+		}
+	}*/
+	_framebuffer->render();
 }
 
 void Application::_renderWithOctreeHierarchicalZBuffer() {
