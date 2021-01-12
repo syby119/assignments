@@ -1,18 +1,16 @@
-﻿  glad.c
-  application.cpp
-d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\application.cpp(260): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
-  framebuffer.cpp
-  shader.cpp
+﻿  application.cpp
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\application.cpp(247): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
   main.cpp
-  model.cpp
-  object3d.cpp
   quadtree.cpp
-d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(14): warning C4244: “参数”: 从“float”转换到“int”，可能丢失数据
-d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(156): warning C4244: “+=”: 从“float”转换到“int”，可能丢失数据
-d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(133): warning C4101: “scanLine”: 未引用的局部变量
-d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(166): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
-d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(167): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(10): warning C4244: “参数”: 从“float”转换到“int”，可能丢失数据
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(17): warning C4244: “参数”: 从“float”转换到“int”，可能丢失数据
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(158): warning C4244: “+=”: 从“float”转换到“int”，可能丢失数据
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(135): warning C4101: “scanLine”: 未引用的局部变量
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(168): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
+d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\quadtree.cpp(169): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
   正在生成代码
-  All 1637 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  0 of 1640 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   hierarchical_zbuffer.vcxproj -> D:\Desktop\senior\graphics\assignments\x64\Release\hierarchical_zbuffer.exe

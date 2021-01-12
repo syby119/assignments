@@ -71,30 +71,17 @@ Application::Application() {
 		_quadTree = new QuadTree(_windowWidth, _windowHeight);
 		break;
 	case RenderMode::OctreeHierarchicalZBuffer:
-		
+
 		break;
 	}
+
 	// debug
-	/*std::ofstream fileOut("debug.txt");
-	std::queue<QuadTreeNode*> q;
-	q.push(_quadTree->getRoot());
-	while (!q.empty()) {
-		int count = q.size();
-		while (count--) {
-			QuadTreeNode* temp = q.front();
-			fileOut << temp->box->xl << "\t" << temp->box->xr << "\t" << temp->box->yl << "\t" << temp->box->yr << std::endl;
-			for (int i = 0; i < 4; ++i) {
-				if (temp->childExists&(1 << i)) {
-					uint32_t locCodeChild = temp->locCode << 2 | i;
-					q.push(&(_quadTree->nodes[locCodeChild]));
-				}
-			}
-			q.pop();
-		}
-		fileOut << std::endl;
+	/*std::ofstream fileOutput;
+	fileOutput.open("./log.txt");
+	for (int i = 0; i < _windowWidth*_windowHeight; ++i) {
+		fileOutput << _quadTree->indexNodeBuffer[i] << std::endl;
 	}
-	fileOut.close();
-	std::cout << "fileOutput end" << std::endl;*/
+	fileOutput.close();*/
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
 }
@@ -339,19 +326,12 @@ void Application::_renderWithHierarchicalZBuffer() {
 		if (node->z < maxZ) {
 			// 扫面线遍历三角形，更新quadTree
 			float cos = -glm::dot(_quadTree->lightDirection, _triangles[i].v[0].normal);
-			if (cos <= 0)
-				continue;
+			if (cos <= 0.0)
+				cos = 0.0f;
 			glm::vec3 color = cos * _quadTree->lightColor;
 			_quadTree->renderTriangle(screenX, screenY, screenZ, color, *_framebuffer);
 		}
 	}
-
-	// 取用frameBuffer 渲染一帧
-	/*for (int i = 0; i < _windowWidth; ++i) {
-		for (int j = 0; j < _windowHeight; ++j) {
-			_framebuffer->setPixel(i, j, _quadTree->getFrameBuffer()[j*_windowWidth + i]);
-		}
-	}*/
 	_framebuffer->render();
 }
 
