@@ -148,6 +148,8 @@
   <ItemGroup>
     <ClCompile Include="..\external\glad\src\glad.c" />
     <ClCompile Include="application.cpp" />
+    <ClCompile Include="framebuffer.cpp" />
+    <ClCompile Include="shader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="object3d.cpp" />
@@ -157,13 +159,15 @@
     <ClInclude Include="application.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="fps_camera.h" />
+    <ClInclude Include="framebuffer.h" />
     <ClInclude Include="input.h" />
+    <ClInclude Include="scan_line_zbuffer.h" />
+    <ClInclude Include="shader.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="object3d.h" />
     <ClInclude Include="perspective_camera.h" />
     <ClInclude Include="quadtree.h" />
-    <ClInclude Include="shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

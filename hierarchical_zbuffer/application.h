@@ -13,6 +13,7 @@
 #include "input.h"
 #include "model.h"
 #include "quadtree.h"
+#include "framebuffer.h"
 
 
 class Application {
@@ -75,15 +76,18 @@ private:
 	enum RenderMode _renderMode = RenderMode::HierarchicalZBuffer;
 
 	/* shader program for test */
-	std::vector<Shader> _shaders;
+	Shader* _shader;
+
+	/* framebuffer */
+	Framebuffer* _framebuffer = nullptr;
 
 	/*
 	 * @brief load models from model path
 	 */
 	void _loadModels();
 
-	/* @brief init shaders */
-	void _initShaders();
+	/* @brief init shader */
+	void _initShader();
 
 	/*
 	 * @brief update time

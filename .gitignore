@@ -13,4 +13,4 @@ x64/
 external/
 
 # exe tmp directory
-/hierarchical_zbuffer/x64/
+hierarchical_zbuffer/x64/
