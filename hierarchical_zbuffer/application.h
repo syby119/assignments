@@ -12,6 +12,7 @@
 #include "fps_camera.h"
 #include "input.h"
 #include "model.h"
+#include "framebuffer.h"
 
 
 class Application {
@@ -68,18 +69,21 @@ private:
 	MouseInput _mouseInput;
 
 	/* render mode */
-	enum RenderMode _renderMode = RenderMode::Gpu;
+	enum RenderMode _renderMode = RenderMode::ScanLineZBuffer;
 
 	/* shader program for test */
-	std::vector<Shader> _shaders;
+	Shader* _shader;
+
+	/* framebuffer */
+	Framebuffer* _framebuffer = nullptr;
 
 	/*
 	 * @brief load models from model path
 	 */
 	void _loadModels();
 
-	/* @brief init shaders */
-	void _initShaders();
+	/* @brief init shader */
+	void _initShader();
 
 	/*
 	 * @brief update time

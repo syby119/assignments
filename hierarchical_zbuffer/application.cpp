@@ -47,7 +47,9 @@ Application::Application() {
 
 
 	_loadModels();
-	_initShaders();
+	_initShader();
+	
+	_framebuffer = new Framebuffer(_windowWidth, _windowHeight);
 
 	std::vector<Vertex> _vertices;
 	std::vector<uint32_t> _indices;
@@ -68,8 +70,19 @@ Application::Application() {
  * @brief default destructor
  */
 Application::~Application() {
+	if (_framebuffer != nullptr) {
+		delete _framebuffer;
+		_framebuffer = nullptr;
+	}
+
+	if (_shader != nullptr) {
+		delete _shader;
+		_shader = nullptr;
+	}
+
 	if (_window != nullptr) {
 		glfwDestroyWindow(_window);
+		_window = 0;
 	}
 	glfwTerminate();
 }
@@ -84,6 +97,7 @@ void Application::run() {
 		_handleInput();
 		_renderFrame();
 
+		glfwSwapBuffers(_window);
 		glfwPollEvents();
 	}
 }
@@ -103,7 +117,7 @@ void Application::_loadModels() {
 
 
 /* @brief init shaders */
-void Application::_initShaders() {
+void Application::_initShader() {
 	// vertex shader code
 	const char* vsCode =
 		"#version 330 core\n"
@@ -135,7 +149,7 @@ void Application::_initShaders() {
 		"	color = vec4(result, 1.0);\n"
 		"}\n";
 
-	_shaders.push_back(Shader(vsCode, fsCode));
+	_shader = new Shader(vsCode, fsCode);
 }
 
 
@@ -249,35 +263,30 @@ void Application::_renderWithGpu() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 p = _fpsCamera.getProjectionMatrix();
-	//std::cout << "projection matrix: " << std::endl;
-	//Object3D::print(p);
-	//std::cout << std::endl;
-
 	glm::mat4 v = _fpsCamera.getViewMatrix();
-	//std::cout << "view matrix: " << std::endl;
-	//Object3D::print(v);
-	//std::cout << std::endl;
 
-	_shaders[0].use();
-	_shaders[0].setMat4("projection", p);
-	_shaders[0].setMat4("view", v);
+	_shader->use();
+	_shader->setMat4("projection", p);
+	_shader->setMat4("view", v);
 	
 	for (const auto& model : _models) {
 		// mvp matrices
 		glm::mat4 m = model.getModelMatrix();
-		//std::cout << "model matrix: " << std::endl;
-		//Object3D::print(m);
-		//std::cout << std::endl;
-		_shaders[0].setMat4("model", m);
+		_shader->setMat4("model", m);
 
-		model.draw(_shaders[0]);
+		model.draw(*_shader);
 	}
-
-	glfwSwapBuffers(_window);
 }
 
 void Application::_renderWithScanLineZBuffer() {
 	/* write your code here */
+	_framebuffer->clear(_clearColor);
+	for (int i = 0; i < _windowWidth; ++i) {
+		for (int j = 0; j < 10; ++j) {
+			_framebuffer->setPixel(i, j, glm::vec3(1.0f, 0.0f, 0.0f));
+		}
+	}
+	_framebuffer->render();
 }
 
 void Application::_renderWithHierarchicalZBuffer() {

@@ -77,8 +77,6 @@ void Model::getFaces(std::vector<Vertex>& vertices, std::vector<uint32_t>& indic
 void Model::draw(Shader& shader) const {
 	for (size_t i = 0; i < _meshes.size(); ++i) {
 		glBindVertexArray(_vaos[i]);
-		//glDrawArrays(GL_TRIANGLES, 0, _meshes[i].vertices.size());
-
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(_meshes[i].indices.size()), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}

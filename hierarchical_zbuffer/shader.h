@@ -23,7 +23,7 @@ public:
     /*
      * @brief constructor, read shader code from file to create opengl shader
      */
-    //Shader(const std::string& vsFilepath, const std::string& fsFilepath);
+    Shader(const std::string& vsFilepath, const std::string& fsFilepath);
 
     /*
      * @brief move constructor

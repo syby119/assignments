@@ -36,14 +36,17 @@ public:
 		//printRotation();
 		//printScale();
 
-		//double xoffset = mouseInput.move.xCurrent - mouseInput.move.xOld;
-		//// OpenGL flip y-axis 
-		//double yoffset = -(mouseInput.move.yCurrent - mouseInput.move.yOld);
+		double xoffset = mouseInput.move.xCurrent - mouseInput.move.xOld;
+		// OpenGL flip y-axis 
+		double yoffset = -(mouseInput.move.yCurrent - mouseInput.move.yOld);
 
-		//glm::vec3 eulerAngles = getLocalEulerAngles(Object3D::RotateOrder::ZXY);
-		//eulerAngles.x += yoffset * _sensitivity;
-		//eulerAngles.y += xoffset * _speed; 
-		//rotate(eulerAngles, Object3D::RotateOrder::ZXY);
+		//std::cout << "(" << xoffset << ", " << yoffset << ")" << std::endl;
+
+		glm::vec3 eulerAngles = getLocalEulerAngles(Object3D::RotateOrder::ZYX);
+		//std::cout << "eulerAngles: "; print(eulerAngles); std::cout << std::endl;
+		//eulerAngles.x += yoffset * _sensitivity * deltaTime;
+		//eulerAngles.y += xoffset * _sensitivity * deltaTime;
+		rotate(eulerAngles, Object3D::RotateOrder::ZYX);
 	}
 
 	void lookAt(glm::vec3 worldPosition, glm::vec3 worldUp) override {
@@ -52,5 +55,5 @@ public:
 
 private:
 	float _speed = 2.5f;
-	float _sensitivity = 0.1f;
+	float _sensitivity = 0.00001f;
 };

@@ -12,12 +12,12 @@ Shader::Shader(const char* vsCode, const char* fsCode) {
 /*
  * @brief constructor, read shader code from file to create opengl shader
  */
-//Shader::Shader(const std::string& vsFilepath, const std::string& fsFilepath) {
-//    std::string vsCode = _readFile(vsFilepath);
-//    std::string fsCode = _readFile(fsFilepath);
-//
-//    _createShaderProgram(vsCode, fsCode);
-//}
+Shader::Shader(const std::string& vsFilepath, const std::string& fsFilepath) {
+    std::string vsCode = _readFile(vsFilepath);
+    std::string fsCode = _readFile(fsFilepath);
+
+    _createShaderProgram(vsCode, fsCode);
+}
 
 Shader::Shader(Shader&& shader) noexcept {
     _id = shader._id;
@@ -39,7 +39,6 @@ Shader::~Shader() {
  * @brief use current shader for object rendering
  */
 void Shader::use() {
-    std::cout << "use: " << _id << std::endl;
     glUseProgram(_id);
 }
 
@@ -184,15 +183,10 @@ void Shader::_createShaderProgram(const std::string& vsCode, const std::string& 
             throw std::runtime_error("create vertex shader failure");
         }
 
-        std::cout << vsCode << std::endl;
-
         fs = _createShader(fsCode, GL_FRAGMENT_SHADER);
         if (!fs) {
             throw std::runtime_error("create fragment shader failure");
         }
-
-        std::cout << fsCode << std::endl;
-
 
         _id = glCreateProgram();
         if (_id == 0) {
