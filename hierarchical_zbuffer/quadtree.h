@@ -57,19 +57,19 @@ public:
 	void scanTwoLine(Side* sides, int left, int right, int dy, glm::vec3 color, Framebuffer& framebuffer);
 	void render(ScanLine scanLine, glm::vec3 color, Framebuffer& framebuffer);
 	void updateQuadTree(QuadTreeNode* node);
+	void clearZBuffer();
 
 	QuadTreeNode* getParentNode(QuadTreeNode* node);
 	QuadTreeNode* lookupNode(uint32_t locCode);
 	size_t getNodeTreeDepth(const QuadTreeNode* node);
 
-	glm::vec3* getFrameBuffer() { return frameBuffer; }
-	//QuadTreeNode* getRoot() { return root; }
+	//glm::vec3* getFrameBuffer() { return frameBuffer; }
 	glm::vec3 lightDirection;
 	glm::vec3 lightColor;
 	
 private:
 	QuadTreeNode* root;
-	glm::vec3* frameBuffer;
+	//glm::vec3* frameBuffer;
 	float* zBuffer;
 	uint32_t* indexNodeBuffer;
 	int width, height;

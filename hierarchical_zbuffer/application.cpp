@@ -327,6 +327,7 @@ void Application::_renderWithScanLineZBuffer() {
 
 void Application::_renderWithHierarchicalZBuffer() {
 	_framebuffer->clear(_clearColor);
+	_quadTree->clearZBuffer();
 
 	glm::mat4x4 view = _fpsCamera.getViewMatrix();
 	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();

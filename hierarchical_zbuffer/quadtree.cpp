@@ -8,13 +8,21 @@ QuadTree::QuadTree(int Width, int Height) {
 	width = Width, height = Height;
 	lightDirection = glm::normalize(glm::vec3(0.8f, -3.0f, -1.5f));
 	lightColor = glm::vec3(0.6f, 0.7f, 0.8f);
-	frameBuffer = new glm::vec3[width*height];
+	//frameBuffer = new glm::vec3[width*height];
 	zBuffer = new float[width*height];
 	indexNodeBuffer = new uint32_t[width*height];
 	memset(zBuffer, -10000.0f, width*height * sizeof(float));
 	root = new QuadTreeNode(1);
 
 	buildQuadTree();
+
+}
+
+void QuadTree::clearZBuffer() {
+	memset(zBuffer, -10000.0f, width*height * sizeof(float));
+	for (auto iter : nodes) {
+		iter.second.z = -FLT_MAX;
+	}
 }
 
 void QuadTree::buildQuadTree() {
