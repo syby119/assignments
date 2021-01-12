@@ -72,6 +72,27 @@ Application::Application() {
 		
 		break;
 	}
+	// debug
+	/*std::ofstream fileOut("debug.txt");
+	std::queue<QuadTreeNode*> q;
+	q.push(_quadTree->getRoot());
+	while (!q.empty()) {
+		int count = q.size();
+		while (count--) {
+			QuadTreeNode* temp = q.front();
+			fileOut << temp->box->xl << "\t" << temp->box->xr << "\t" << temp->box->yl << "\t" << temp->box->yr << std::endl;
+			for (int i = 0; i < 4; ++i) {
+				if (temp->childExists&(1 << i)) {
+					uint32_t locCodeChild = temp->locCode << 2 | i;
+					q.push(&(_quadTree->nodes[locCodeChild]));
+				}
+			}
+			q.pop();
+		}
+		fileOut << std::endl;
+	}
+	fileOut.close();
+	std::cout << "fileOutput end" << std::endl;*/
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
 }
@@ -298,11 +319,16 @@ void Application::_renderWithHierarchicalZBuffer() {
 	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();
 	for (int i = 0; i < _triangles.size(); ++i) {
 		int screenX[3], screenY[3];
-		int maxZ = _quadTree->calTriangle(_triangles[i], view, projection, screenX, screenY);
+		float screenZ[3];
+		int maxZ = _quadTree->calTriangle(_triangles[i], view, projection, screenX, screenY, screenZ);
 		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY);
 		if (node->z < maxZ) {
 			// 扫面线遍历三角形，更新quadTree
-
+			float cos = glm::dot(_quadTree->lightDirection, _triangles[i].v->normal);
+			if (cos <= 0)
+				continue;
+			glm::vec3 color = cos * _quadTree->lightColor;
+			_quadTree->renderTriangle(screenX, screenY, screenZ, color);
 		}
 	}
 

@@ -72,7 +72,7 @@ private:
 	MouseInput _mouseInput;
 
 	/* render mode */
-	enum RenderMode _renderMode = RenderMode::Gpu;
+	enum RenderMode _renderMode = RenderMode::HierarchicalZBuffer;
 
 	/* shader program for test */
 	std::vector<Shader> _shaders;
