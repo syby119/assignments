@@ -4,9 +4,8 @@
 #include <climits>
 #include <algorithm>
 #include <unordered_map>
-//#include <queue>
-//#include <fstream>
 #include <glm/mat4x4.hpp>
+//#include <iostream>
 
 
 struct Side {
@@ -24,8 +23,6 @@ struct ScanLine {
 	int y;
 	float dz;
 };
-
-bool cmp(Side a, Side b);
 
 struct QuadBoundingBox {
 	int xl, xr;
@@ -63,13 +60,12 @@ public:
 	QuadTreeNode* lookupNode(uint32_t locCode);
 	size_t getNodeTreeDepth(const QuadTreeNode* node);
 
-	//glm::vec3* getFrameBuffer() { return frameBuffer; }
 	glm::vec3 lightDirection;
 	glm::vec3 lightColor;
+	glm::vec3 ambientColor;
 	
-private:
+public:
 	QuadTreeNode* root;
-	//glm::vec3* frameBuffer;
 	float* zBuffer;
 	uint32_t* indexNodeBuffer;
 	int width, height;

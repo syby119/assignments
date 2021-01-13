@@ -1,33 +1,28 @@
 #include "quadtree.h"
 
-bool cmp(Side a, Side b) {
-	return a.yMin < b.yMin;
-};
-
 QuadTree::QuadTree(int Width, int Height) {
 	width = Width, height = Height;
 	lightDirection = glm::normalize(glm::vec3(0.8f, -3.0f, -1.5f));
 	lightColor = glm::vec3(0.6f, 0.7f, 0.8f);
-	//frameBuffer = new glm::vec3[width*height];
+	ambientColor = glm::vec3(0.14f, 0.16f, 0.18f);
 	zBuffer = new float[width*height];
 	indexNodeBuffer = new uint32_t[width*height];
 	memset(zBuffer, -10000.0f, width*height * sizeof(float));
 	root = new QuadTreeNode(1);
 
 	buildQuadTree();
-
 }
 
 void QuadTree::clearZBuffer() {
 	memset(zBuffer, -10000.0f, width*height * sizeof(float));
 	for (auto iter : nodes) {
-		iter.second.z = -FLT_MAX;
+		iter.second.z = -10000.0f;
 	}
 }
 
 void QuadTree::buildQuadTree() {
 	root->box = new QuadBoundingBox{ 0, width, 0, height, (width + 1) / 2, (height + 1) / 2 };
-	root->z = -FLT_MAX;
+	root->z = -10000.0f;
 	splitNode(root);
 }
 
@@ -63,10 +58,9 @@ void QuadTree::splitNode(QuadTreeNode* node) {
 		nodes[nodeTemp->locCode] = *nodeTemp;
 	}
 	// 对子节点迭代
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 4; ++i) {
 		if (node->childExists&(1 << i)) {
 			const uint32_t locCodeChild = (node->locCode << 2) | i;
-			// splitNode(&nodes[locCodeChild]);
 			auto* child = lookupNode(locCodeChild);
 			splitNode(child);
 		}
@@ -92,14 +86,14 @@ QuadTreeNode* QuadTree::searchNode(int* screenX, int* screenY) {
 	while (flag) {
 		uint8_t quadCode[3] = { 0, 0, 0 };
 		for (int i = 0; i < 3; ++i) {
-			quadCode[i] |= screenX[i] < node->box->centerX ? 0 : 1;
-			quadCode[i] <<= 1;
 			quadCode[i] |= screenY[i] < node->box->centerY ? 0 : 1;
+			quadCode[i] <<= 1;
+			quadCode[i] |= screenX[i] < node->box->centerX ? 0 : 1;
 		}
 		if (quadCode[0] == quadCode[1] &&
 			quadCode[1] == quadCode[2] &&
 			node->childExists&(1<<quadCode[0])) {
-			uint32_t locCodeChild = node->locCode << 2 | quadCode[0];
+			uint32_t locCodeChild = (node->locCode << 2) | quadCode[0];
 			node = &nodes[locCodeChild];
 		}
 		else {
@@ -173,50 +167,56 @@ void QuadTree::scanTwoLine(Side* sides, int left, int right, int dy, glm::vec3 c
 	ScanLine scanLine;
 	float xl = sides[left].x;
 	float xr = sides[right].x;
+	scanLine.zl = sides[left].z;
+	scanLine.y = sides[left].yMin;
+	
 	for (int i = 0; i < dy; ++i) {
 		scanLine.xl = (int)xl;
 		scanLine.xr = (int)xr;
+		scanLine.dz = (sides[right].z + i * sides[right].dz - scanLine.zl) / (scanLine.xr - scanLine.xl);
+		render(scanLine, color, framebuffer);
+
 		xl += sides[left].dx;
 		xr += sides[right].dx;
-		scanLine.zl = sides[left].z + (i*sides[left].dz);
-		scanLine.y = sides[left].yMin + i;
-		scanLine.dz = (sides[right].z + i * sides[right].dz - sides[left].z - i * sides[left].dz) / (scanLine.xr - scanLine.xl);
-		render(scanLine, color, framebuffer);
+		scanLine.zl += sides[left].dz;
+		++scanLine.y;
 	}
 	return;
 }
 
 void QuadTree::render(ScanLine scanline, glm::vec3 color, Framebuffer& framebuffer) {
 	int y = scanline.y;
-	for (int x = scanline.xl; x < scanline.xr; ++x) {
-		float z = scanline.zl + x * scanline.dz;
-		int index = width * y + x;
+	float z = scanline.zl;
+	int index = width * y + scanline.xl;
+	for (int x = scanline.xl; x <= scanline.xr; ++x) {
 		if (z > zBuffer[index]) {
 			zBuffer[index] = z;
-			//frameBuffer[index] = color;
-			framebuffer.setPixel(x, y, color);
+			framebuffer.setPixel(x, y, color+ambientColor);
 			QuadTreeNode* node = &nodes[indexNodeBuffer[index]];
 			node->z = z;
 			updateQuadTree(node);
 		}
+		z += scanline.dz;
+		++index;
 	}
 }
 
 void QuadTree::updateQuadTree(QuadTreeNode* node) {
 	// 更新整棵树
-	if (node->locCode != 1) {
-		uint32_t locCodeParent = node->locCode >> 2;
-		QuadTreeNode* nodeParent = &nodes[locCodeParent];
-		float minZ = FLT_MAX;
+	if (node->locCode > 1) {
+		QuadTreeNode* nodeParent = getParentNode(node);
+		float minZ = -10000.0;
 		for (int i = 0; i < 4; ++i) {
 			if(nodeParent->childExists&(1 << i)) {
-				uint32_t locCodeChild = locCodeParent | i;
-				QuadTreeNode* nodeChild = &nodes[locCodeChild];
+				uint32_t locCodeChild = nodeParent->locCode | i;
+				QuadTreeNode* nodeChild = lookupNode(locCodeChild);
 				minZ = std::min(minZ, nodeChild->z);
 			}
 		}
-		if (minZ > nodeParent->z)
+		if (minZ > nodeParent->z) {
+			nodeParent->z = minZ;
 			updateQuadTree(nodeParent);
+		}
 	}
 }
 
