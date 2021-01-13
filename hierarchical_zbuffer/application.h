@@ -81,6 +81,15 @@ private:
 	/* framebuffer */
 	Framebuffer* _framebuffer = nullptr;
 
+	/* object color */
+	glm::vec3 _objectColor = glm::vec3(1.0, 0.0, 0.0);
+
+	/* light color */
+	glm::vec3 _lightColor = glm::vec3(1.0, 1.0, 1.0);
+
+	/* light direction */
+	glm::vec3 _lightDirection = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
+
 	/*
 	 * @brief load models from model path
 	 */

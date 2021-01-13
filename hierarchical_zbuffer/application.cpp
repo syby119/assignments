@@ -39,10 +39,6 @@ Application::Application() {
 		exit(EXIT_FAILURE);
 	}
 
-	if (_renderMode == RenderMode::Gpu) {
-		glEnable(GL_DEPTH_TEST);
-	}
-
 	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 10.0f));
 
 
@@ -97,6 +93,8 @@ Application::Application() {
 	std::cout << "fileOutput end" << std::endl;*/
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
+
+	std::cout << "Gpu renderer" << std::endl;
 }
 
 
@@ -171,14 +169,14 @@ void Application::_initShader() {
 	const char* fsCode =
 		"#version 330 core\n"
 		"in vec3 normal;\n"
+		"uniform vec3 objectColor;\n"
+		"uniform vec3 lightColor;\n"
+		"uniform vec3 lightDirection;\n"
 		"out vec4 color;\n"
 		"void main() {\n"
-		"	vec3 objectColor = vec3(1.0, 0.0, 0.0);\n"
-		"	vec3 lightColor = vec3(1.0, 1.0, 1.0);\n"
 		"	vec3 ambient = 0.1 * lightColor;\n"
-		"	vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));\n"
 		"	vec3 norm = normalize(normal);\n"
-		"	vec3 diffuse = max(dot(norm, lightDir), 0.0) * lightColor;\n"
+		"	vec3 diffuse = max(dot(norm, lightDirection), 0.0) * lightColor;\n"
 		"	vec3 result = (ambient + diffuse) * objectColor;\n"
 		"	color = vec4(result, 1.0);\n"
 		"}\n";
@@ -259,9 +257,19 @@ void Application::_keyPressedCallback(GLFWwindow* window, int key, int scancode,
 void Application::_handleInput() {
 	_fpsCamera.update(_keyboardInput, _mouseInput, _deltaTime);
 	
-	//for (auto& keyPress : _keyboardInput.keyPressed) {
-	//	keyPress = false;
-	//}
+	if (_keyboardInput.keyPressed[GLFW_KEY_0]) {
+		std::cout << "GPU renderer" << std::endl;
+		_renderMode = RenderMode::Gpu;
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_1]) {
+		std::cout << "scan line renderer" << std::endl;
+		_renderMode = RenderMode::ScanLineZBuffer;
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_2]) {
+		std::cout << "hierarchical zbuffer renderer" << std::endl;
+		_renderMode = RenderMode::HierarchicalZBuffer;
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_3]) {
+		std::cout << "hierarchical zbuffer with octree renderer" << std::endl;
+		_renderMode = RenderMode::OctreeHierarchicalZBuffer;
+	}
 
 	_mouseInput.move.xOld = _mouseInput.move.xCurrent;
 	_mouseInput.move.yOld = _mouseInput.move.yCurrent;
@@ -295,6 +303,7 @@ void Application::_renderFrame() {
 }
 
 void Application::_renderWithGpu() {
+	glEnable(GL_DEPTH_TEST);
 	glClearColor(_clearColor[0], _clearColor[1], _clearColor[2], _clearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -304,6 +313,9 @@ void Application::_renderWithGpu() {
 	_shader->use();
 	_shader->setMat4("projection", p);
 	_shader->setMat4("view", v);
+	_shader->setVec3("objectColor", _objectColor);
+	_shader->setVec3("lightColor", _lightColor);
+	_shader->setVec3("lightDirection", _lightDirection);
 	
 	for (const auto& model : _models) {
 		// mvp matrices
@@ -312,6 +324,7 @@ void Application::_renderWithGpu() {
 
 		model.draw(*_shader);
 	}
+	glDisable(GL_DEPTH_TEST);
 }
 
 void Application::_renderWithScanLineZBuffer() {
