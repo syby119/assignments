@@ -2,10 +2,11 @@
 
 #include <array>
 #include <chrono>
-#include <cstdlib> // exit
+#include <cstdlib>
+#include <list>
 #include <iostream>
 #include <string>
-//#include <fstream>
+#include <vector>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,6 +17,10 @@
 #include "quadtree.h"
 #include "octree.h"
 #include "framebuffer.h"
+#include "zbuffer.h"
+#include "quadtree.h"
+#include "clipper.h"
+#include "scanline_renderer.h"
 
 
 class Application {
@@ -36,13 +41,10 @@ public:
 	void run();
 
 	/*
-	 * @brief render mode
+	 * @brief renderer
 	 */
-	enum class RenderMode {
-		Gpu,
-		ScanLineZBuffer,
-		HierarchicalZBuffer,
-		OctreeHierarchicalZBuffer
+	enum class RendererType {
+		GpuRenderer, ScanLineRenderer
 	};
 
 private:
@@ -63,26 +65,39 @@ private:
 
 	/* model */
 	std::vector<Model> _models;
-	std::vector<std::string> _modelFilepaths{ "../resources/bunny.obj" };
+	std::vector<std::string> _modelFilepaths{ "../resources/quadZ.obj" };
 
 	/* triangle data: local space */
 	std::vector<Triangle> _triangles;
 
-	///* camera */
+	/* camera */
 	FpsCamera _fpsCamera{glm::radians(54.0f), 1.0f * _windowWidth / _windowHeight };
 
 	/* input */
 	KeyboardInput _keyboardInput;
 	MouseInput _mouseInput;
 
-	/* render mode */
-	enum RenderMode _renderMode = RenderMode::OctreeHierarchicalZBuffer;
+	/* renderer mode */
+	enum RendererType _rendererType = RendererType::ScanLineRenderer;
+
+	/* renderer */
+	ScanlineRenderer _scanlineRenderer{ _windowWidth, _windowHeight, _clearColor };
 
 	/* shader program for test */
-	Shader* _shader;
+	Shader* _shader = nullptr;
 
 	/* framebuffer */
 	Framebuffer* _framebuffer = nullptr;
+
+	/* object color */
+	glm::vec3 _objectColor = glm::vec3(1.0, 0.0, 0.0);
+
+	/* light color */
+	glm::vec3 _lightColor = glm::vec3(1.0, 1.0, 1.0);
+
+	/* light direction */
+	glm::vec3 _lightDirection = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
+
 
 	/*
 	 * @brief load models from model path
@@ -116,6 +131,7 @@ private:
 	 * @brief render frame with specified render mode
 	 */
 	void _renderFrame();
+
 
 	/*
 	 * @brief render frame with gpu

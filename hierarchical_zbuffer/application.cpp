@@ -39,10 +39,6 @@ Application::Application() {
 		exit(EXIT_FAILURE);
 	}
 
-	if (_renderMode == RenderMode::Gpu) {
-		glEnable(GL_DEPTH_TEST);
-	}
-
 	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 10.0f));
 
 
@@ -77,6 +73,8 @@ Application::Application() {
 	}
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
+
+	std::cout << "Gpu renderer" << std::endl;
 }
 
 
@@ -151,14 +149,14 @@ void Application::_initShader() {
 	const char* fsCode =
 		"#version 330 core\n"
 		"in vec3 normal;\n"
+		"uniform vec3 objectColor;\n"
+		"uniform vec3 lightColor;\n"
+		"uniform vec3 lightDirection;\n"
 		"out vec4 color;\n"
 		"void main() {\n"
-		"	vec3 objectColor = vec3(1.0, 0.0, 0.0);\n"
-		"	vec3 lightColor = vec3(1.0, 1.0, 1.0);\n"
 		"	vec3 ambient = 0.1 * lightColor;\n"
-		"	vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));\n"
 		"	vec3 norm = normalize(normal);\n"
-		"	vec3 diffuse = max(dot(norm, lightDir), 0.0) * lightColor;\n"
+		"	vec3 diffuse = max(dot(norm, lightDirection), 0.0) * lightColor;\n"
 		"	vec3 result = (ambient + diffuse) * objectColor;\n"
 		"	color = vec4(result, 1.0);\n"
 		"}\n";
@@ -239,9 +237,26 @@ void Application::_keyPressedCallback(GLFWwindow* window, int key, int scancode,
 void Application::_handleInput() {
 	_fpsCamera.update(_keyboardInput, _mouseInput, _deltaTime);
 	
-	//for (auto& keyPress : _keyboardInput.keyPressed) {
-	//	keyPress = false;
-	//}
+	if (_keyboardInput.keyPressed[GLFW_KEY_0]) {
+		_rendererType = RendererType::GpuRenderer;
+
+		std::cout << "gpu renderer" << std::endl;
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_1]) {
+		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer.setRenderMode(ScanlineRenderer::RenderMode::ZBuffer);
+
+		std::cout << "scanline renderer with zbuffer" << std::endl;
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_2]) {
+		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer.setRenderMode(ScanlineRenderer::RenderMode::HierarchicalZBuffer);
+
+		std::cout << "scanline renderer with hierarchical zbuffer" << std::endl;
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_3]) {
+		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer.setRenderMode(ScanlineRenderer::RenderMode::OctreeHierarchicalZBuffer);
+
+		std::cout << "scanline renderer with hierarchical zbuffer and octree" << std::endl;
+	}
 
 	_mouseInput.move.xOld = _mouseInput.move.xCurrent;
 	_mouseInput.move.yOld = _mouseInput.move.yCurrent;
@@ -252,20 +267,16 @@ void Application::_handleInput() {
  */
 void Application::_renderFrame() {
 	auto start = std::chrono::high_resolution_clock::now();
-	switch (_renderMode) {
-		case RenderMode::Gpu:
+	switch (_rendererType) {
+		case RendererType::GpuRenderer:
 			_renderWithGpu();
 			break;
-		case RenderMode::ScanLineZBuffer:
-			_renderWithScanLineZBuffer();
-			break;
-		case RenderMode::HierarchicalZBuffer:
-			_renderWithHierarchicalZBuffer();
-			break;
-		case RenderMode::OctreeHierarchicalZBuffer:
-			_renderWithOctreeHierarchicalZBuffer();
+		case RendererType::ScanLineRenderer:
+			_scanlineRenderer.render(*_framebuffer, 
+				_fpsCamera, _models, _objectColor, _lightColor, _lightDirection);
 			break;
 	}
+
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto milliseconds = std::chrono::duration<double, std::milli>(stop - start).count();
 
@@ -274,7 +285,9 @@ void Application::_renderFrame() {
 #endif
 }
 
+
 void Application::_renderWithGpu() {
+	glEnable(GL_DEPTH_TEST);
 	glClearColor(_clearColor[0], _clearColor[1], _clearColor[2], _clearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -284,6 +297,9 @@ void Application::_renderWithGpu() {
 	_shader->use();
 	_shader->setMat4("projection", p);
 	_shader->setMat4("view", v);
+	_shader->setVec3("objectColor", _objectColor);
+	_shader->setVec3("lightColor", _lightColor);
+	_shader->setVec3("lightDirection", _lightDirection);
 	
 	for (const auto& model : _models) {
 		// mvp matrices
@@ -292,17 +308,12 @@ void Application::_renderWithGpu() {
 
 		model.draw(*_shader);
 	}
+	glDisable(GL_DEPTH_TEST);
 }
 
+
 void Application::_renderWithScanLineZBuffer() {
-	/* write your code here */
-	_framebuffer->clear(_clearColor);
-	for (int i = 0; i < _windowWidth; ++i) {
-		for (int j = 0; j < 10; ++j) {
-			_framebuffer->setPixel(i, j, glm::vec3(1.0f, 0.0f, 0.0f));
-		}
-	}
-	_framebuffer->render();
+	
 }
 
 void Application::_renderWithHierarchicalZBuffer() {

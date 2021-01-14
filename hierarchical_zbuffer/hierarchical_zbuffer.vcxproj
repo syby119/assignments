@@ -148,8 +148,10 @@
   <ItemGroup>
     <ClCompile Include="..\external\glad\src\glad.c" />
     <ClCompile Include="application.cpp" />
+    <ClCompile Include="clipper.cpp" />
     <ClCompile Include="framebuffer.cpp" />
     <ClCompile Include="octree.cpp" />
+    <ClCompile Include="scanline_renderer.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
@@ -159,11 +161,14 @@
   <ItemGroup>
     <ClInclude Include="application.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="clipper.h" />
+    <ClInclude Include="zbuffer.h" />
     <ClInclude Include="fps_camera.h" />
     <ClInclude Include="framebuffer.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="octree.h" />
     <ClInclude Include="scan_line_zbuffer.h" />
+    <ClInclude Include="scanline_renderer.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />

@@ -53,14 +53,14 @@ public:
 		_zfar = zfar;
 	}
 
-	glm::mat4x4 getViewMatrix() {
+	glm::mat4x4 getViewMatrix() const {
 		glm::mat4x4 view(1.0f);
 		view = glm::translate(view, -_localPosition);
 		view = glm::mat4_cast(_localRotation) * view;
 		return view;
 	}
 
-	virtual glm::mat4x4 getProjectionMatrix() = 0;
+	virtual glm::mat4x4 getProjectionMatrix() const = 0;
 
 	virtual void lookAt(glm::vec3 worldPosition, glm::vec3 worldUp) = 0;
 
