@@ -1,7 +1,8 @@
 #include "quadtree.h"
 
-QuadTree::QuadTree(int Width, int Height) {
+QuadTree::QuadTree(int Width, int Height, Framebuffer* framebuffer) {
 	width = Width, height = Height;
+	frameBuffer = framebuffer;
 	lightDirection = glm::normalize(glm::vec3(0.8f, -3.0f, -1.5f));
 	lightColor = glm::vec3(0.6f, 0.7f, 0.8f);
 	ambientColor = glm::vec3(0.14f, 0.16f, 0.18f);
@@ -67,19 +68,6 @@ void QuadTree::splitNode(QuadTreeNode* node) {
 	}
 }
 
-float QuadTree::calTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection, int* screenX, int* screenY, float* screenZ) {
-	float maxZ = -FLT_MAX;
-	for (int i = 0; i < 3; ++i) {
-		glm::vec4 Vv = view * glm::vec4(tri.v[i].position, 1.0);
-		screenZ[i] = Vv.z;
-		maxZ = std::max(maxZ, Vv.z);
-		glm::vec4 PVv = projection * Vv;
-		screenX[i] = int((PVv.x / PVv.w + 1.0f) * width / 2);
-		screenY[i] = int((PVv.y / PVv.w + 1.0f) * height / 2);
-	}
-	return maxZ;
-}
-
 QuadTreeNode* QuadTree::searchNode(int* screenX, int* screenY) {
 	bool flag = true;
 	QuadTreeNode* node = root;
@@ -103,7 +91,35 @@ QuadTreeNode* QuadTree::searchNode(int* screenX, int* screenY) {
 	return node;
 }
 
-void QuadTree::renderTriangle(int* screenX, int* screenY, float* screenZ, glm::vec3 color, Framebuffer& framebuffer) {
+void QuadTree::handleTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection) {
+	int screenX[3], screenY[3];
+	float screenZ[3];
+	float maxZ = calTriangle(tri, view, projection, screenX, screenY, screenZ);
+	QuadTreeNode* node = searchNode(screenX, screenY);
+	if (node->z < maxZ) {
+		// 扫面线遍历三角形，更新quadTree
+		float cos = -glm::dot(lightDirection, tri.v[0].normal);
+		if (cos <= 0.0)
+			cos = 0.0f;
+		glm::vec3 color = cos * lightColor;
+		renderTriangle(screenX, screenY, screenZ, color);
+	}
+}
+
+float QuadTree::calTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection, int* screenX, int* screenY, float* screenZ) {
+	float maxZ = -FLT_MAX;
+	for (int i = 0; i < 3; ++i) {
+		glm::vec4 Vv = view * glm::vec4(tri.v[i].position, 1.0f);
+		screenZ[i] = Vv.z;
+		maxZ = std::max(maxZ, Vv.z);
+		glm::vec4 PVv = projection * Vv;
+		screenX[i] = int((PVv.x / PVv.w + 1.0f) * width / 2);
+		screenY[i] = int((PVv.y / PVv.w + 1.0f) * height / 2);
+	}
+	return maxZ;
+}
+
+void QuadTree::renderTriangle(int* screenX, int* screenY, float* screenZ, glm::vec3 color) {
 	// 提取三条边并排序
 	Side sides[3];
 	for (int i = 0; i < 3; ++i) {
@@ -132,21 +148,20 @@ void QuadTree::renderTriangle(int* screenX, int* screenY, float* screenZ, glm::v
 			if (sides[index].dy == 0)
 				break;
 		}
-		ScanLine scanLine;
 		int index1 = (index + 1) % 3;
 		int index2 = (index + 2) % 3;
 		bool flag = sides[index1].x < sides[index2].x ? true : false;
 		int left = flag ? index1 : index2;
 		int right = flag ? index2 : index1;
 		int dy = sides[left].dy;
-		scanTwoLine(sides, left, right, dy, color, framebuffer);
+		scanTwoLine(sides, left, right, dy, color);
 	}
 	else {
 		bool flag = sides[0].dx < sides[1].dx ? true : false;
 		int left = flag ? 0 : 1;
 		int right = flag ? 1 : 0;
 		int dy = std::min(sides[left].dy, sides[right].dy);
-		scanTwoLine(sides, left, right, dy, color, framebuffer);
+		scanTwoLine(sides, left, right, dy, color);
 		int index;
 		if (sides[left].dy < sides[right].dy)
 			left = 2, index = right;
@@ -159,11 +174,11 @@ void QuadTree::renderTriangle(int* screenX, int* screenY, float* screenZ, glm::v
 		sides[index].z += dy * sides[index].dz;
 		sides[index].dy -= dy;
 		dy = sides[index].dy;
-		scanTwoLine(sides, left, right, dy, color, framebuffer);
+		scanTwoLine(sides, left, right, dy, color);
 	}
 }
 
-void QuadTree::scanTwoLine(Side* sides, int left, int right, int dy, glm::vec3 color, Framebuffer& framebuffer) {
+void QuadTree::scanTwoLine(Side* sides, int left, int right, int dy, glm::vec3 color) {
 	ScanLine scanLine;
 	float xl = sides[left].x;
 	float xr = sides[right].x;
@@ -174,7 +189,7 @@ void QuadTree::scanTwoLine(Side* sides, int left, int right, int dy, glm::vec3 c
 		scanLine.xl = (int)xl;
 		scanLine.xr = (int)xr;
 		scanLine.dz = (sides[right].z + i * sides[right].dz - scanLine.zl) / (scanLine.xr - scanLine.xl);
-		render(scanLine, color, framebuffer);
+		render(scanLine, color);
 
 		xl += sides[left].dx;
 		xr += sides[right].dx;
@@ -184,14 +199,14 @@ void QuadTree::scanTwoLine(Side* sides, int left, int right, int dy, glm::vec3 c
 	return;
 }
 
-void QuadTree::render(ScanLine scanline, glm::vec3 color, Framebuffer& framebuffer) {
+void QuadTree::render(ScanLine scanline, glm::vec3 color) {
 	int y = scanline.y;
 	float z = scanline.zl;
 	int index = width * y + scanline.xl;
 	for (int x = scanline.xl; x <= scanline.xr; ++x) {
 		if (z > zBuffer[index]) {
 			zBuffer[index] = z;
-			framebuffer.setPixel(x, y, color+ambientColor);
+			frameBuffer->setPixel(x, y, color+ambientColor);
 			QuadTreeNode* node = &nodes[indexNodeBuffer[index]];
 			node->z = z;
 			updateQuadTree(node);

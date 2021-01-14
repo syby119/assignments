@@ -45,14 +45,16 @@ public:
 
 class QuadTree {
 public:
-	QuadTree(int Width, int Height);
+	QuadTree(int Width, int Height, Framebuffer* framebuffer);
 	void buildQuadTree();
 	void splitNode(QuadTreeNode* node);
-	float calTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection, int* screenX, int* screenY, float* screenZ);
+	
 	QuadTreeNode* searchNode(int* screenX, int* screenY);
-	void renderTriangle(int* screenX, int* screenY, float* screenZ, glm::vec3 color, Framebuffer& framebuffer);
-	void scanTwoLine(Side* sides, int left, int right, int dy, glm::vec3 color, Framebuffer& framebuffer);
-	void render(ScanLine scanLine, glm::vec3 color, Framebuffer& framebuffer);
+	void handleTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection);
+	float calTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection, int* screenX, int* screenY, float* screenZ);
+	void renderTriangle(int* screenX, int* screenY, float* screenZ, glm::vec3 color);
+	void scanTwoLine(Side* sides, int left, int right, int dy, glm::vec3 color);
+	void render(ScanLine scanLine, glm::vec3 color);
 	void updateQuadTree(QuadTreeNode* node);
 	void clearZBuffer();
 
@@ -70,4 +72,5 @@ public:
 	uint32_t* indexNodeBuffer;
 	int width, height;
 	std::unordered_map<uint32_t, QuadTreeNode> nodes;
+	Framebuffer* frameBuffer;
 };

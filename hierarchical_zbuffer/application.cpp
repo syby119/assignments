@@ -68,10 +68,11 @@ Application::Application() {
 
 		break;
 	case RenderMode::HierarchicalZBuffer:
-		_quadTree = new QuadTree(_windowWidth, _windowHeight);
+		_quadTree = new QuadTree(_windowWidth, _windowHeight, _framebuffer);
 		break;
 	case RenderMode::OctreeHierarchicalZBuffer:
-
+		_quadTree = new QuadTree(_windowWidth, _windowHeight, _framebuffer);
+		_octree = new Octree(&_triangles, 10);
 		break;
 	}
 
@@ -319,23 +320,45 @@ void Application::_renderWithHierarchicalZBuffer() {
 	glm::mat4x4 view = _fpsCamera.getViewMatrix();
 	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();
 	for (int i = 0; i < _triangles.size(); ++i) {
-		int screenX[3], screenY[3];
-		float screenZ[3];
-		float maxZ = _quadTree->calTriangle(_triangles[i], view, projection, screenX, screenY, screenZ);
-		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY);
-		if (node->z < maxZ) {
-			// 扫面线遍历三角形，更新quadTree
-			float cos = -glm::dot(_quadTree->lightDirection, _triangles[i].v[0].normal);
-			if (cos <= 0.0)
-				cos = 0.0f;
-			glm::vec3 color = cos * _quadTree->lightColor;
-			_quadTree->renderTriangle(screenX, screenY, screenZ, color, *_framebuffer);
-		}
+		_quadTree->handleTriangle(_triangles[i], view, projection);
 	}
 	_framebuffer->render();
 }
 
 void Application::_renderWithOctreeHierarchicalZBuffer() {
-	/* write your code here */
+	_framebuffer->clear(_clearColor);
+	_quadTree->clearZBuffer();
+
+	glm::mat4x4 view = _fpsCamera.getViewMatrix();
+	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();
+	
+	std::stack<ptrOctreeZNode> stackNode;
+	stackNode.push(new OctreeZNode{ 0.0f, _octree->getRoot() });
+	while (!stackNode.empty()) {
+		ptrOctreeZNode temp = stackNode.top();
+		stackNode.pop();
+		// 直接渲染三角形
+		for (auto iter : temp->node->objects) {
+			_quadTree->handleTriangle(*iter, view, projection);
+		}
+		ptrOctreeZNode child[8];
+		int count = 0;
+		for (int i = 0; i < 8; ++i) {
+			if (temp->node->childExists & (1 << i)) {
+				uint32_t locCodeChild = temp->node->locCode | i;
+				OctreeNode* childNode = _octree->lookupNode(locCodeChild);
+				glm::vec4 Vv = view * glm::vec4(childNode->box->center, 1.0f);
+				child[count++] = new OctreeZNode{ Vv.z, childNode };
+			}
+		}
+		std::sort(child, child + count, [](const ptrOctreeZNode& a, const ptrOctreeZNode& b) {
+			return a->z > b->z;
+		});
+		while (--count > 0) {
+			stackNode.push(child[count]);
+		}
+	}
+
+	_framebuffer->render();
 }
 

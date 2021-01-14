@@ -14,6 +14,7 @@
 #include "input.h"
 #include "model.h"
 #include "quadtree.h"
+#include "octree.h"
 #include "framebuffer.h"
 
 
@@ -54,6 +55,7 @@ private:
 
 	/* trees */
 	QuadTree* _quadTree;
+	Octree* _octree;
 
 	/* time */
 	std::chrono::time_point<std::chrono::high_resolution_clock> _lastTimeStamp;
@@ -61,7 +63,7 @@ private:
 
 	/* model */
 	std::vector<Model> _models;
-	std::vector<std::string> _modelFilepaths{ "../resources/bunny.obj" };
+	std::vector<std::string> _modelFilepaths{ "../resources/cube.obj" };
 
 	/* triangle data: local space */
 	std::vector<Triangle> _triangles;
@@ -74,7 +76,7 @@ private:
 	MouseInput _mouseInput;
 
 	/* render mode */
-	enum RenderMode _renderMode = RenderMode::HierarchicalZBuffer;
+	enum RenderMode _renderMode = RenderMode::OctreeHierarchicalZBuffer;
 
 	/* shader program for test */
 	Shader* _shader;

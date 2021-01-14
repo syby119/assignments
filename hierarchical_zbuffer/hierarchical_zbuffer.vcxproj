@@ -149,6 +149,7 @@
     <ClCompile Include="..\external\glad\src\glad.c" />
     <ClCompile Include="application.cpp" />
     <ClCompile Include="framebuffer.cpp" />
+    <ClCompile Include="octree.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="fps_camera.h" />
     <ClInclude Include="framebuffer.h" />
     <ClInclude Include="input.h" />
+    <ClInclude Include="octree.h" />
     <ClInclude Include="scan_line_zbuffer.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="mesh.h" />
