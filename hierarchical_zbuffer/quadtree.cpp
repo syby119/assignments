@@ -91,6 +91,31 @@ QuadTreeNode* QuadTree::searchNode(int* screenX, int* screenY) {
 	return node;
 }
 
+QuadTreeNode* QuadTree::searchNode(int screenX, int screenY, int screenRadius) {
+	bool flag = true;
+	QuadTreeNode* node = root;
+	while (flag) {
+		if ((screenY - node->box->centerY) * (screenY - node->box->centerY) +
+			(screenX - node->box->centerX) * (screenX - node->box->centerX) < screenRadius) {
+			flag = false;
+		}
+		else {
+			uint8_t quadCode = 0;
+			quadCode |= screenY < node->box->centerY ? 0 : 1;
+			quadCode <<= 1;
+			quadCode |= screenX < node->box->centerX ? 0 : 1;
+			if (node->childExists & (1 << quadCode)) {
+				uint32_t locCodeChild = (node->locCode << 2) | quadCode;
+				node = &nodes[locCodeChild];
+			}
+			else {
+				flag = false;
+			}
+		}
+	}
+	return node;
+}
+
 void QuadTree::handleTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection) {
 	int screenX[3], screenY[3];
 	float screenZ[3];

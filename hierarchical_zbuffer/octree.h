@@ -17,7 +17,7 @@ public:
 	std::unordered_set<Triangle*> objects;
 	uint32_t locCode;
 	uint8_t childExists;
-	OctreeNode() {}
+	OctreeNode() = default;
 	OctreeNode(uint32_t LocCode) {
 		locCode = LocCode;
 		childExists = 0;
@@ -36,7 +36,7 @@ public:
 	Octree(std::vector<Triangle>* _triangles, size_t Threshold);
 	void buildBoundingBox();
 	void buildOctree();
-	void splitNode(OctreeNode* node);
+	void splitNode(OctreeNode* node, int depth);
 
 	OctreeNode* getParentNode(OctreeNode* node);
 	OctreeNode* lookupNode(uint32_t locCode);

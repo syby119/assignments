@@ -76,14 +76,6 @@ Application::Application() {
 		break;
 	}
 
-	// debug
-	/*std::ofstream fileOutput;
-	fileOutput.open("./log.txt");
-	for (int i = 0; i < _windowWidth*_windowHeight; ++i) {
-		fileOutput << _quadTree->indexNodeBuffer[i] << std::endl;
-	}
-	fileOutput.close();*/
-
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
 }
 
@@ -337,15 +329,28 @@ void Application::_renderWithOctreeHierarchicalZBuffer() {
 	while (!stackNode.empty()) {
 		ptrOctreeZNode temp = stackNode.top();
 		stackNode.pop();
-		// 直接渲染三角形
-		for (auto iter : temp->node->objects) {
+		
+		int screenX, screenY, screenRadius;
+		glm::vec4 PVv = projection * view * glm::vec4{ temp->node->box->center, 1.0f };
+		screenX = int((PVv.x / PVv.w + 1.0f) * _windowWidth / 2);
+		screenY = int((PVv.y / PVv.w + 1.0f) * _windowHeight / 2);
+		glm::vec3 vec = temp->node->box->center +
+			glm::vec3(1.0f, 0.0f, 0.0f) * temp->node->box->halfSide * 1.73206f;
+		glm::vec4 PVvec = projection * view * glm::vec4(vec, 1.0f);
+		screenRadius = int((PVvec.x / PVvec.w + 1.0f) * _windowWidth / 2);
+
+		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
+		if (node->z < temp->node->box->center.z + temp->node->box->halfSide * 1.73206f) {
+			for (auto iter : temp->node->objects) {
 			_quadTree->handleTriangle(*iter, view, projection);
+			}
 		}
+
 		ptrOctreeZNode child[8];
 		int count = 0;
 		for (int i = 0; i < 8; ++i) {
 			if (temp->node->childExists & (1 << i)) {
-				uint32_t locCodeChild = temp->node->locCode | i;
+				uint32_t locCodeChild = (temp->node->locCode << 3) | i;
 				OctreeNode* childNode = _octree->lookupNode(locCodeChild);
 				glm::vec4 Vv = view * glm::vec4(childNode->box->center, 1.0f);
 				child[count++] = new OctreeZNode{ Vv.z, childNode };
@@ -354,8 +359,8 @@ void Application::_renderWithOctreeHierarchicalZBuffer() {
 		std::sort(child, child + count, [](const ptrOctreeZNode& a, const ptrOctreeZNode& b) {
 			return a->z > b->z;
 		});
-		while (--count > 0) {
-			stackNode.push(child[count]);
+		while (count > 0) {
+			stackNode.push(child[--count]);
 		}
 	}
 

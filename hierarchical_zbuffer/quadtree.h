@@ -1,5 +1,6 @@
 #pragma once
 #include "mesh.h"
+#include "octree.h"
 #include "framebuffer.h"
 #include <climits>
 #include <algorithm>
@@ -36,7 +37,7 @@ public:
 	float z;
 	uint32_t locCode;
 	uint8_t childExists;
-	QuadTreeNode() {}
+	QuadTreeNode() = default;
 	QuadTreeNode(uint32_t LocCode) {
 		locCode = LocCode;
 		childExists = 0;
@@ -50,6 +51,7 @@ public:
 	void splitNode(QuadTreeNode* node);
 	
 	QuadTreeNode* searchNode(int* screenX, int* screenY);
+	QuadTreeNode* searchNode(int screenX, int screenY, int screenRadius);
 	void handleTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection);
 	float calTriangle(Triangle& tri, glm::mat4x4& view, glm::mat4x4& projection, int* screenX, int* screenY, float* screenZ);
 	void renderTriangle(int* screenX, int* screenY, float* screenZ, glm::vec3 color);
