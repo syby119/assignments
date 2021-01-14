@@ -58,26 +58,7 @@ Application::Application() {
 			_vertices[_indices[i]], _vertices[_indices[i + 1]] , _vertices[_indices[i + 2]] });
 	}
 
-	// new tree
-	switch (_renderMode) {
-	case RenderMode::ScanLineZBuffer:
-
-		break;
-	case RenderMode::HierarchicalZBuffer:
-		_quadTree = new QuadTree(_windowWidth, _windowHeight);
-		break;
-	case RenderMode::OctreeHierarchicalZBuffer:
-
-		break;
-	}
-
-	// debug
-	/*std::ofstream fileOutput;
-	fileOutput.open("./log.txt");
-	for (int i = 0; i < _windowWidth*_windowHeight; ++i) {
-		fileOutput << _quadTree->indexNodeBuffer[i] << std::endl;
-	}
-	fileOutput.close();*/
+	_quadTree = new QuadTree(_windowWidth, _windowHeight);
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
 
@@ -245,17 +226,24 @@ void Application::_handleInput() {
 	_fpsCamera.update(_keyboardInput, _mouseInput, _deltaTime);
 	
 	if (_keyboardInput.keyPressed[GLFW_KEY_0]) {
-		std::cout << "GPU renderer" << std::endl;
-		_renderMode = RenderMode::Gpu;
+		_rendererType = RendererType::GpuRenderer;
+
+		std::cout << "gpu renderer" << std::endl;
 	} else if (_keyboardInput.keyPressed[GLFW_KEY_1]) {
-		std::cout << "scan line renderer" << std::endl;
-		_renderMode = RenderMode::ScanLineZBuffer;
+		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer.setRenderMode(ScanlineRenderer::RenderMode::ZBuffer);
+
+		std::cout << "scanline renderer with zbuffer" << std::endl;
 	} else if (_keyboardInput.keyPressed[GLFW_KEY_2]) {
-		std::cout << "hierarchical zbuffer renderer" << std::endl;
-		_renderMode = RenderMode::HierarchicalZBuffer;
+		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer.setRenderMode(ScanlineRenderer::RenderMode::HierarchicalZBuffer);
+
+		std::cout << "scanline renderer with hierarchical zbuffer" << std::endl;
 	} else if (_keyboardInput.keyPressed[GLFW_KEY_3]) {
-		std::cout << "hierarchical zbuffer with octree renderer" << std::endl;
-		_renderMode = RenderMode::OctreeHierarchicalZBuffer;
+		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer.setRenderMode(ScanlineRenderer::RenderMode::OctreeHierarchicalZBuffer);
+
+		std::cout << "scanline renderer with hierarchical zbuffer and octree" << std::endl;
 	}
 
 	_mouseInput.move.xOld = _mouseInput.move.xCurrent;
@@ -267,20 +255,16 @@ void Application::_handleInput() {
  */
 void Application::_renderFrame() {
 	auto start = std::chrono::high_resolution_clock::now();
-	switch (_renderMode) {
-		case RenderMode::Gpu:
+	switch (_rendererType) {
+		case RendererType::GpuRenderer:
 			_renderWithGpu();
 			break;
-		case RenderMode::ScanLineZBuffer:
-			_renderWithScanLineZBuffer();
-			break;
-		case RenderMode::HierarchicalZBuffer:
-			_renderWithHierarchicalZBuffer();
-			break;
-		case RenderMode::OctreeHierarchicalZBuffer:
-			_renderWithOctreeHierarchicalZBuffer();
+		case RendererType::ScanLineRenderer:
+			_scanlineRenderer.render(*_framebuffer, 
+				_fpsCamera, _models, _objectColor, _lightColor, _lightDirection);
 			break;
 	}
+
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto milliseconds = std::chrono::duration<double, std::milli>(stop - start).count();
 
@@ -288,6 +272,7 @@ void Application::_renderFrame() {
 	std::cout << "+ render time: " << milliseconds << " ms" << std::endl;
 #endif
 }
+
 
 void Application::_renderWithGpu() {
 	glEnable(GL_DEPTH_TEST);
@@ -314,15 +299,9 @@ void Application::_renderWithGpu() {
 	glDisable(GL_DEPTH_TEST);
 }
 
+
 void Application::_renderWithScanLineZBuffer() {
-	/* write your code here */
-	_framebuffer->clear(_clearColor);
-	for (int i = 0; i < _windowWidth; ++i) {
-		for (int j = 0; j < 10; ++j) {
-			_framebuffer->setPixel(i, j, glm::vec3(1.0f, 0.0f, 0.0f));
-		}
-	}
-	_framebuffer->render();
+	
 }
 
 void Application::_renderWithHierarchicalZBuffer() {
