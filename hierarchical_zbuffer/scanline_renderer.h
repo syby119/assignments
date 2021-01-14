@@ -11,6 +11,7 @@
 #include "clipper.h"
 #include "zbuffer.h"
 #include "quadtree.h"
+#include "octree.h"
 #include "framebuffer.h"
 #include "scanline_renderer.h"
 
@@ -59,9 +60,13 @@ public:
 		OctreeHierarchicalZBuffer
 	};
 
-	ScanlineRenderer(int windowWidth, int windowHeight, const glm::vec4& clearColor);
+	ScanlineRenderer(Framebuffer& framebuffer,
+		int windowWidth, int windowHeight,
+		std::vector<Triangle>& triangles,
+		const glm::vec4& clearColor);
 
-	void render(Framebuffer& framebuffer,
+	void render(
+		Framebuffer& framebuffer,
 		const Camera& camera,
 		const std::vector<Model>& models,
 		const glm::vec3& objectColor,
@@ -73,6 +78,8 @@ public:
 private:
 	/* render mode */
 	RenderMode _renderMode = RenderMode::ZBuffer;
+
+	Framebuffer& _framebuffer;
 
 	/* image resolution */
 	int _windowWidth = 0;
@@ -96,14 +103,17 @@ private:
 	/* active edge table */
 	std::list<ActiveEdgePair> _activeEdgeTable;
 
+	/* triangles */
+	std::vector<Triangle>& _triangles;
+
 	/* zbuffer */
-	Zbuffer _zbuffer;
+	Zbuffer* _zbuffer = nullptr;
 
 	/* hierachical zbuffer */
-	QuadTree _quadTree;
+	QuadTree* _quadTree = nullptr;
 
-	/* */
-	//Octree 
+	/* octree */
+	Octree* _octree = nullptr;
 
 	/*
 	 * @brief assemble classified polygon table and classified edge table
@@ -121,6 +131,10 @@ private:
 
 	void _scan(Framebuffer& framebuffer);
 
-	void _findEdge(int y, int polygonId);
+	void _renderWithScanLineZBuffer();
+
+	void _renderWithHierarchicalZBuffer(const Camera& camera);
+
+	void _renderWithOctreeHierarchicalZBuffer(const Camera& camera);
 };
 

@@ -2,14 +2,20 @@
 #include "scanline_renderer.h"
 
 
-ScanlineRenderer::ScanlineRenderer(int windowWidth, int windowHeight, 
-								   const glm::vec4& clearColor)
-	: _windowWidth(windowWidth), _windowHeight(windowHeight), 
+ScanlineRenderer::ScanlineRenderer(
+	Framebuffer& framebuffer,
+	int windowWidth, int windowHeight,
+	std::vector<Triangle>& triangles,
+	const glm::vec4& clearColor)
+	: _framebuffer(framebuffer),
+	  _windowWidth(windowWidth), _windowHeight(windowHeight),
 	  _clearColor(clearColor), 
-	  _zbuffer(windowWidth, windowHeight),
-	  _quadTree(windowWidth, windowHeight) {
+		_triangles(triangles) {
 	_classifiedPolygonTable.resize(windowHeight);
 	_classifiedEdgeTable.resize(windowHeight);
+	_zbuffer = new Zbuffer(windowWidth, windowHeight);
+	_quadTree = new QuadTree(windowWidth, windowHeight, &_framebuffer);
+	_octree = new Octree(&triangles, 10);
 }
 
 
@@ -20,15 +26,19 @@ void ScanlineRenderer::render(
 	const glm::vec3& objectColor,
 	const glm::vec3& lightColor,
 	const glm::vec3& lightDirection) {
-	_clearRenderData();
-	framebuffer.clear(_clearColor);
+	if (_renderMode == RenderMode::ZBuffer) {
+		std::cout << "not ready" << std::endl;
+		_clearRenderData();
+		framebuffer.clear(_clearColor);
 
-	_assembleRenderData(camera, models, objectColor, lightColor, lightDirection);
+		_assembleRenderData(camera, models, objectColor, lightColor, lightDirection);
 
-	_scan(framebuffer);
-
-
-
+		_scan(framebuffer);
+	} else if (_renderMode == RenderMode::HierarchicalZBuffer) {
+		_renderWithHierarchicalZBuffer(camera);
+	} else {
+		_renderWithOctreeHierarchicalZBuffer(camera);
+	}
 }
 
 
@@ -54,13 +64,13 @@ void ScanlineRenderer::_clearRenderData() {
 
 	switch (_renderMode) {
 	case RenderMode::ZBuffer:
-		_zbuffer.clear();
+		_zbuffer->clear();
 		break;
 	case RenderMode::HierarchicalZBuffer:
-		_quadTree.clearZBuffer();
+		_quadTree->clearZBuffer();
 		break;
 	case RenderMode::OctreeHierarchicalZBuffer:
-		_quadTree.clearZBuffer();
+		_quadTree->clearZBuffer();
 		break;
 	}
 }
@@ -278,7 +288,7 @@ void ScanlineRenderer::_scan(Framebuffer& framebuffer) {
 			// update framebuffer & zbuffer
 			float zx = edgePair.zl;
 			for (float x = edgePair.xl; x <= edgePair.xr; x += 1.0f) {
-				if (_zbuffer.testAndSet(static_cast<float>(x), y, zx)) {
+				if (_zbuffer->testAndSet(static_cast<float>(x), y, zx)) {
 					framebuffer.setPixel(static_cast<float>(x), y, pPolygon->color);
 				}
 				zx += edgePair.dzx;
@@ -329,4 +339,73 @@ void ScanlineRenderer::_scan(Framebuffer& framebuffer) {
 		}
 
 	}
+}
+
+
+void ScanlineRenderer::_renderWithScanLineZBuffer() {
+
+}
+
+
+void ScanlineRenderer::_renderWithHierarchicalZBuffer(const Camera& camera) {
+	_framebuffer.clear(_clearColor);
+	_quadTree->clearZBuffer();
+
+	glm::mat4x4 view = camera.getViewMatrix();
+	glm::mat4x4 projection = camera.getProjectionMatrix();
+	for (int i = 0; i < _triangles.size(); ++i) {
+		_quadTree->handleTriangle(_triangles[i], view, projection);
+	}
+
+	_framebuffer.render();
+}
+
+void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(const Camera& camera) {
+	_framebuffer.clear(_clearColor);
+	_quadTree->clearZBuffer();
+
+	glm::mat4x4 view = camera.getViewMatrix();
+	glm::mat4x4 projection = camera.getProjectionMatrix();
+
+	std::stack<ptrOctreeZNode> stackNode;
+	stackNode.push(new OctreeZNode{ 0.0f, _octree->getRoot() });
+	while (!stackNode.empty()) {
+		ptrOctreeZNode temp = stackNode.top();
+		stackNode.pop();
+
+		int screenX, screenY, screenRadius;
+		glm::vec4 PVv = projection * view * glm::vec4{ temp->node->box->center, 1.0f };
+		screenX = int((PVv.x / PVv.w + 1.0f) * _windowWidth / 2);
+		screenY = int((PVv.y / PVv.w + 1.0f) * _windowHeight / 2);
+		glm::vec3 vec = temp->node->box->center +
+			glm::vec3(1.0f, 0.0f, 0.0f) * temp->node->box->halfSide * 1.73206f;
+		glm::vec4 PVvec = projection * view * glm::vec4(vec, 1.0f);
+		screenRadius = int((PVvec.x / PVvec.w + 1.0f) * _windowWidth / 2);
+
+		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
+		if (node->z < temp->node->box->center.z + temp->node->box->halfSide * 1.73206f) {
+			for (auto iter : temp->node->objects) {
+				_quadTree->handleTriangle(*iter, view, projection);
+			}
+		}
+
+		ptrOctreeZNode child[8];
+		int count = 0;
+		for (int i = 0; i < 8; ++i) {
+			if (temp->node->childExists & (1 << i)) {
+				uint32_t locCodeChild = (temp->node->locCode << 3) | i;
+				OctreeNode* childNode = _octree->lookupNode(locCodeChild);
+				glm::vec4 Vv = view * glm::vec4(childNode->box->center, 1.0f);
+				child[count++] = new OctreeZNode{ Vv.z, childNode };
+			}
+		}
+		std::sort(child, child + count, [](const ptrOctreeZNode& a, const ptrOctreeZNode& b) {
+			return a->z > b->z;
+			});
+		while (count > 0) {
+			stackNode.push(child[--count]);
+		}
+	}
+
+	_framebuffer.render();
 }

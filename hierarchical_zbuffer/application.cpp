@@ -58,19 +58,7 @@ Application::Application() {
 			_vertices[_indices[i]], _vertices[_indices[i + 1]] , _vertices[_indices[i + 2]] });
 	}
 
-	// new tree
-	switch (_renderMode) {
-	case RenderMode::ScanLineZBuffer:
-
-		break;
-	case RenderMode::HierarchicalZBuffer:
-		_quadTree = new QuadTree(_windowWidth, _windowHeight, _framebuffer);
-		break;
-	case RenderMode::OctreeHierarchicalZBuffer:
-		_quadTree = new QuadTree(_windowWidth, _windowHeight, _framebuffer);
-		_octree = new Octree(&_triangles, 10);
-		break;
-	}
+	_scanlineRenderer = new ScanlineRenderer(*_framebuffer, _windowWidth, _windowHeight, _triangles, _clearColor);
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
 
@@ -243,17 +231,17 @@ void Application::_handleInput() {
 		std::cout << "gpu renderer" << std::endl;
 	} else if (_keyboardInput.keyPressed[GLFW_KEY_1]) {
 		_rendererType = RendererType::ScanLineRenderer;
-		_scanlineRenderer.setRenderMode(ScanlineRenderer::RenderMode::ZBuffer);
+		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::ZBuffer);
 
 		std::cout << "scanline renderer with zbuffer" << std::endl;
 	} else if (_keyboardInput.keyPressed[GLFW_KEY_2]) {
 		_rendererType = RendererType::ScanLineRenderer;
-		_scanlineRenderer.setRenderMode(ScanlineRenderer::RenderMode::HierarchicalZBuffer);
+		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::HierarchicalZBuffer);
 
 		std::cout << "scanline renderer with hierarchical zbuffer" << std::endl;
 	} else if (_keyboardInput.keyPressed[GLFW_KEY_3]) {
 		_rendererType = RendererType::ScanLineRenderer;
-		_scanlineRenderer.setRenderMode(ScanlineRenderer::RenderMode::OctreeHierarchicalZBuffer);
+		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::OctreeHierarchicalZBuffer);
 
 		std::cout << "scanline renderer with hierarchical zbuffer and octree" << std::endl;
 	}
@@ -272,7 +260,7 @@ void Application::_renderFrame() {
 			_renderWithGpu();
 			break;
 		case RendererType::ScanLineRenderer:
-			_scanlineRenderer.render(*_framebuffer, 
+			_scanlineRenderer->render(*_framebuffer, 
 				_fpsCamera, _models, _objectColor, _lightColor, _lightDirection);
 			break;
 	}
@@ -310,71 +298,3 @@ void Application::_renderWithGpu() {
 	}
 	glDisable(GL_DEPTH_TEST);
 }
-
-
-void Application::_renderWithScanLineZBuffer() {
-	
-}
-
-void Application::_renderWithHierarchicalZBuffer() {
-	_framebuffer->clear(_clearColor);
-	_quadTree->clearZBuffer();
-
-	glm::mat4x4 view = _fpsCamera.getViewMatrix();
-	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();
-	for (int i = 0; i < _triangles.size(); ++i) {
-		_quadTree->handleTriangle(_triangles[i], view, projection);
-	}
-	_framebuffer->render();
-}
-
-void Application::_renderWithOctreeHierarchicalZBuffer() {
-	_framebuffer->clear(_clearColor);
-	_quadTree->clearZBuffer();
-
-	glm::mat4x4 view = _fpsCamera.getViewMatrix();
-	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();
-	
-	std::stack<ptrOctreeZNode> stackNode;
-	stackNode.push(new OctreeZNode{ 0.0f, _octree->getRoot() });
-	while (!stackNode.empty()) {
-		ptrOctreeZNode temp = stackNode.top();
-		stackNode.pop();
-		
-		int screenX, screenY, screenRadius;
-		glm::vec4 PVv = projection * view * glm::vec4{ temp->node->box->center, 1.0f };
-		screenX = int((PVv.x / PVv.w + 1.0f) * _windowWidth / 2);
-		screenY = int((PVv.y / PVv.w + 1.0f) * _windowHeight / 2);
-		glm::vec3 vec = temp->node->box->center +
-			glm::vec3(1.0f, 0.0f, 0.0f) * temp->node->box->halfSide * 1.73206f;
-		glm::vec4 PVvec = projection * view * glm::vec4(vec, 1.0f);
-		screenRadius = int((PVvec.x / PVvec.w + 1.0f) * _windowWidth / 2);
-
-		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
-		if (node->z < temp->node->box->center.z + temp->node->box->halfSide * 1.73206f) {
-			for (auto iter : temp->node->objects) {
-			_quadTree->handleTriangle(*iter, view, projection);
-			}
-		}
-
-		ptrOctreeZNode child[8];
-		int count = 0;
-		for (int i = 0; i < 8; ++i) {
-			if (temp->node->childExists & (1 << i)) {
-				uint32_t locCodeChild = (temp->node->locCode << 3) | i;
-				OctreeNode* childNode = _octree->lookupNode(locCodeChild);
-				glm::vec4 Vv = view * glm::vec4(childNode->box->center, 1.0f);
-				child[count++] = new OctreeZNode{ Vv.z, childNode };
-			}
-		}
-		std::sort(child, child + count, [](const ptrOctreeZNode& a, const ptrOctreeZNode& b) {
-			return a->z > b->z;
-		});
-		while (count > 0) {
-			stackNode.push(child[--count]);
-		}
-	}
-
-	_framebuffer->render();
-}
-

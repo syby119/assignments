@@ -55,17 +55,13 @@ private:
 	int _windowHeight = 720;
 	glm::vec4 _clearColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	/* trees */
-	QuadTree* _quadTree;
-	Octree* _octree;
-
 	/* time */
 	std::chrono::time_point<std::chrono::high_resolution_clock> _lastTimeStamp;
 	double _deltaTime = 0.0f;
 
 	/* model */
 	std::vector<Model> _models;
-	std::vector<std::string> _modelFilepaths{ "../resources/quadZ.obj" };
+	std::vector<std::string> _modelFilepaths{ "../resources/bunny.obj" };
 
 	/* triangle data: local space */
 	std::vector<Triangle> _triangles;
@@ -76,12 +72,6 @@ private:
 	/* input */
 	KeyboardInput _keyboardInput;
 	MouseInput _mouseInput;
-
-	/* renderer mode */
-	enum RendererType _rendererType = RendererType::ScanLineRenderer;
-
-	/* renderer */
-	ScanlineRenderer _scanlineRenderer{ _windowWidth, _windowHeight, _clearColor };
 
 	/* shader program for test */
 	Shader* _shader = nullptr;
@@ -97,6 +87,12 @@ private:
 
 	/* light direction */
 	glm::vec3 _lightDirection = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
+
+	/* renderer mode */
+	enum RendererType _rendererType = RendererType::GpuRenderer;
+
+	/* renderer */
+	ScanlineRenderer* _scanlineRenderer = nullptr;
 
 
 	/*
@@ -138,14 +134,7 @@ private:
 	 */
 	void _renderWithGpu();
 
-	// todo
-	void _renderWithScanLineZBuffer();
 
-	// todo
-	void _renderWithHierarchicalZBuffer();
-	
-	// todo
-	void _renderWithOctreeHierarchicalZBuffer();
 };
 
 
