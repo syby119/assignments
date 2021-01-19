@@ -1,5 +1,5 @@
 //#define SHOW_CALLBACK
-#define SHOW_RENDER_INFO
+//#define SHOW_RENDER_INFO
 
 #include "application.h"
 
@@ -39,7 +39,7 @@ Application::Application() {
 		exit(EXIT_FAILURE);
 	}
 
-	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 10.0f));
+	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 15.0f));
 
 
 	_loadModels();
@@ -223,7 +223,7 @@ void Application::_keyPressedCallback(GLFWwindow* window, int key, int scancode,
  * @brief handle input and update camera
  */
 void Application::_handleInput() {
-	_fpsCamera.update(_keyboardInput, _mouseInput, _deltaTime);
+	_fpsCamera.update(_keyboardInput, _mouseInput, static_cast<float>(_deltaTime));
 	
 	if (_keyboardInput.keyPressed[GLFW_KEY_0]) {
 		_rendererType = RendererType::GpuRenderer;
@@ -267,6 +267,26 @@ void Application::_renderFrame() {
 
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto milliseconds = std::chrono::duration<double, std::milli>(stop - start).count();
+
+	if (_rendererType == RendererType::GpuRenderer) {
+		_windowTitle = "gpu renderer";
+	} else {
+		switch (_scanlineRenderer->getRenderMode()) {
+		case ScanlineRenderer::RenderMode::ZBuffer:
+			_windowTitle = "scanline renderer with zbuffer";
+			break;
+		case ScanlineRenderer::RenderMode::HierarchicalZBuffer:
+			_windowTitle = "scanline renderer with hierarchical zbuffer";
+			break;
+		case ScanlineRenderer::RenderMode::OctreeHierarchicalZBuffer:
+			_windowTitle = "scanline renderer with octree and hierarchical zBuffer";
+			break;
+		}
+	}
+
+	_windowTitle += "  render time: " + std::to_string(milliseconds) + "ms";
+	glfwSetWindowTitle(_window, _windowTitle.c_str());
+
 
 #ifdef SHOW_RENDER_INFO
 	std::cout << "+ render time: " << milliseconds << " ms" << std::endl;

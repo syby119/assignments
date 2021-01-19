@@ -1,5 +1,3 @@
-#include <direct.h>
-
 #include <iostream>
 #include <stdexcept>
 
@@ -7,10 +5,6 @@
 
 /* program entry point */
 int main() {
-	char buf[1024];
-	_getcwd(buf, 1024);
-	std::cout << "current directory: " << buf << std::endl;
-
 	try {
 		Application app;
 		app.run();

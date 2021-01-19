@@ -1,32 +1,31 @@
 #pragma once
-#include "mesh.h"
+
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
 #include <stack>
 #include <iostream>
 
+#include "mesh.h"
+
 struct OctBoundingBox {
 	glm::vec3 center;
-	float halfSide;
+	float halfSide = 0.0f;
 };
 
 class OctreeNode {
 public:
-	OctBoundingBox* box;
+	OctBoundingBox* box = nullptr;
 	std::unordered_set<Triangle*> objects;
-	uint32_t locCode;
-	uint8_t childExists;
+	uint32_t locCode = std::numeric_limits<uint32_t>::max();
+	uint8_t childExists = 0;
 	OctreeNode() = default;
-	OctreeNode(uint32_t LocCode) {
-		locCode = LocCode;
-		childExists = 0;
-	}
+	OctreeNode(uint32_t LocCode) : locCode(LocCode) { };
 };
 
 struct OctreeZNode {
-	float z;
-	OctreeNode* node;
+	float z = -1.0f;
+	OctreeNode* node = nullptr;
 };
 
 typedef OctreeZNode* ptrOctreeZNode;
@@ -34,8 +33,13 @@ typedef OctreeZNode* ptrOctreeZNode;
 class Octree {
 public:
 	Octree(std::vector<Triangle>* _triangles, size_t Threshold);
+	
+	~Octree();
+	
 	void buildBoundingBox();
+	
 	void buildOctree();
+	
 	void splitNode(OctreeNode* node, int depth);
 
 	OctreeNode* getParentNode(OctreeNode* node);
@@ -45,8 +49,8 @@ public:
 	OctreeNode* getRoot() { return root; }
 
 private:
-	OctreeNode* root;
+	OctreeNode* root = nullptr;
 	std::unordered_map<uint32_t, OctreeNode> nodes;
-	std::vector<Triangle>* objects;
-	size_t threshold;
+	std::vector<Triangle>* objects = nullptr;
+	size_t threshold = 10;
 };

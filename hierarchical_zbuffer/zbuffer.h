@@ -26,7 +26,7 @@ public:
 
 	bool testAndSet(int x, int y, float z) {
 		const int offset = y * _width + x;
-		if (z > _buffer[offset]) {
+		if (z < _buffer[offset]) {
 			_buffer[offset] = z;
 			return true;
 		} else  {
@@ -37,7 +37,7 @@ public:
 	void clear() {
 		const int resolution = _width * _height;
 		for (int i = 0; i < resolution; ++i) {
-			_buffer[i] = -std::numeric_limits<float>::max();
+			_buffer[i] = 1.0f;
 		}
 	}
 private:

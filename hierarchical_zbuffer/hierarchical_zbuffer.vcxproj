@@ -117,6 +117,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\external\glfw-3.3.2.bin.WIN64\include;..\external\glm;..\external\glad\include;..\external\assimp-5.0.1\include;..\external\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -135,6 +136,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\external\glfw-3.3.2.bin.WIN64\include;..\external\glm;..\external\glad\include;..\external\assimp-5.0.1\include;..\external\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -167,7 +169,6 @@
     <ClInclude Include="framebuffer.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="octree.h" />
-    <ClInclude Include="scan_line_zbuffer.h" />
     <ClInclude Include="scanline_renderer.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="mesh.h" />

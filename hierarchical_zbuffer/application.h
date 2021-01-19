@@ -61,13 +61,13 @@ private:
 
 	/* model */
 	std::vector<Model> _models;
-	std::vector<std::string> _modelFilepaths{ "../resources/bunny.obj" };
+	std::vector<std::string> _modelFilepaths{ "../resources/character.obj" };
 
 	/* triangle data: local space */
 	std::vector<Triangle> _triangles;
 
 	/* camera */
-	FpsCamera _fpsCamera{glm::radians(54.0f), 1.0f * _windowWidth / _windowHeight };
+	FpsCamera _fpsCamera{glm::radians(54.0f), 1.0f * _windowWidth / _windowHeight, 1.0f, 500.0f };
 
 	/* input */
 	KeyboardInput _keyboardInput;
@@ -80,13 +80,13 @@ private:
 	Framebuffer* _framebuffer = nullptr;
 
 	/* object color */
-	glm::vec3 _objectColor = glm::vec3(1.0, 0.0, 0.0);
+	glm::vec3 _objectColor = glm::vec3(0.9f, 0.9f, 0.9f);
 
 	/* light color */
-	glm::vec3 _lightColor = glm::vec3(1.0, 1.0, 1.0);
+	glm::vec3 _lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	/* light direction */
-	glm::vec3 _lightDirection = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
+	glm::vec3 _lightDirection = -glm::normalize(glm::vec3(0.8f, -3.0f, -1.5f));
 
 	/* renderer mode */
 	enum RendererType _rendererType = RendererType::GpuRenderer;
@@ -136,6 +136,3 @@ private:
 
 
 };
-
-
-

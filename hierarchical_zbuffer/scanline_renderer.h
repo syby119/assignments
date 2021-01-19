@@ -29,12 +29,12 @@ struct Polygon {
 struct Edge {
 	/* top point x of the edge */
 	int x;
-	/* 1 / k */
+	/* -1 / k */
 	float dx;
 	/* scan line contained */
 	int dy;
 	/* id of the triangle */
-	float id;
+	int id;
 };
 
 
@@ -45,6 +45,7 @@ struct ActiveEdgePair {
 	float dxl, dxr;
 	/* scanline contained */
 	int dyl, dyr;
+	/* z value at the left edge */
 	float zl;
 	/* z increasement per pixel in x/y direction, dzx = -a/c, dzy = b/c */
 	float dzx, dzy;
@@ -57,7 +58,9 @@ public:
 	enum class RenderMode {
 		ZBuffer,
 		HierarchicalZBuffer,
-		OctreeHierarchicalZBuffer
+		OctreeHierarchicalZBuffer,
+		HierarchicalZBufferLocal,
+		OctreeHierarchicalZBufferLocal,
 	};
 
 	ScanlineRenderer(Framebuffer& framebuffer,
@@ -72,6 +75,8 @@ public:
 		const glm::vec3& objectColor,
 		const glm::vec3& lightColor,
 		const glm::vec3& lightDirection);
+
+	enum RenderMode getRenderMode() const;
 
 	void setRenderMode(enum RenderMode renderMode);
 
@@ -131,10 +136,25 @@ private:
 
 	void _scan(Framebuffer& framebuffer);
 
+	Polygon* _findActivePolygon(int id);
+
 	void _renderWithScanLineZBuffer();
 
-	void _renderWithHierarchicalZBuffer(const Camera& camera);
+	void _renderWithHierarchicalZBuffer(
+		const Camera& camera,
+		const glm::vec3& objectColor,
+		const glm::vec3& lightDirection,
+		const glm::vec3& lightColor);
 
-	void _renderWithOctreeHierarchicalZBuffer(const Camera& camera);
+	void _renderWithOctreeHierarchicalZBuffer(
+		const Camera& camera, 
+		const glm::vec3& objectColor,
+		const glm::vec3& lightColor,
+		const glm::vec3& lightDirection);
+
+	static void _print(const Polygon& polygon);
+
+	static void _print(const Edge& edge);
+
+	static void _print(const ActiveEdgePair& edgePair);
 };
-

@@ -43,17 +43,6 @@ private:
 	 */
 	glm::vec4 _intersect(const glm::vec4& v1, const glm::vec4& v2, enum ClipPlane plane);
 
-	/*
-	 * @brief get the first clip plane
-	 * @return the first clip plane
-	 */
-	enum ClipPlane _clipBegin() const ;
-
-	/*
-	 * @brief get the last clip plane
-	 * @return the last clip plane
-	 */
-	enum ClipPlane _clipEnd() const ;
 
 	/*
 	 * @brief get the next clip plane
@@ -67,4 +56,6 @@ private:
 	 */
 	int _planeIndex(enum ClipPlane plane) const;
 
+
+	enum ClipPlane _getPlane(int index) const;
 };

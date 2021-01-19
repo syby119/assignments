@@ -1,5 +1,6 @@
 #include <iostream>
 #include "scanline_renderer.h"
+#include <cstdio>
 
 
 ScanlineRenderer::ScanlineRenderer(
@@ -27,18 +28,24 @@ void ScanlineRenderer::render(
 	const glm::vec3& lightColor,
 	const glm::vec3& lightDirection) {
 	if (_renderMode == RenderMode::ZBuffer) {
-		std::cout << "not ready" << std::endl;
 		_clearRenderData();
 		framebuffer.clear(_clearColor);
 
 		_assembleRenderData(camera, models, objectColor, lightColor, lightDirection);
 
 		_scan(framebuffer);
+
+		framebuffer.render();
 	} else if (_renderMode == RenderMode::HierarchicalZBuffer) {
-		_renderWithHierarchicalZBuffer(camera);
+		_renderWithHierarchicalZBuffer(camera, objectColor, lightColor, lightDirection);
 	} else {
-		_renderWithOctreeHierarchicalZBuffer(camera);
+		_renderWithOctreeHierarchicalZBuffer(camera, objectColor, lightColor, lightDirection);
 	}
+}
+
+
+enum ScanlineRenderer::RenderMode ScanlineRenderer::getRenderMode() const {
+	return _renderMode;
 }
 
 
@@ -67,10 +74,10 @@ void ScanlineRenderer::_clearRenderData() {
 		_zbuffer->clear();
 		break;
 	case RenderMode::HierarchicalZBuffer:
-		_quadTree->clearZBuffer();
+		_quadTree->clear();
 		break;
 	case RenderMode::OctreeHierarchicalZBuffer:
-		_quadTree->clearZBuffer();
+		_quadTree->clear();
 		break;
 	}
 }
@@ -99,10 +106,6 @@ void ScanlineRenderer::_assembleRenderData(
 		std::vector<uint32_t> indices;
 		model.getFaces(vertices, indices);
 
-		std::cout << "proj: \n"; Object3D::print(projMat); std::cout << std::endl;
-		std::cout << "view: \n"; Object3D::print(viewMat); std::cout << std::endl;
-		std::cout << "model: \n"; Object3D::print(modelMat); std::cout << std::endl;
-
 		// for all triangles
 		for (size_t i = 0; i < indices.size(); i += 3) {
 			// get the raw data of a triangle
@@ -112,11 +115,28 @@ void ScanlineRenderer::_assembleRenderData(
 				vertices[indices[i + 2]],
 			};
 
+			//if (i == 3252 || i == 58521) {
+			//	std::cout << "triangle " << i << std::endl;
+			//	std::cout << "raw data" << std::endl;
+			//	Object3D::print(tri[0].position); std::cout << "\n";
+			//	Object3D::print(tri[1].position); std::cout << "\n";
+			//	Object3D::print(tri[2].position); std::cout << "\n";
+			//}
+
 			// mvp transformation
 			glm::vec4 v[3];
 			for (int j = 0; j < 3; ++j) {
 				v[j] = mvp * glm::vec4(tri[j].position, 1.0f);
 			}
+
+			//if (i == 3252 || i == 58521) {
+			//	std::cout << "triangle " << i << std::endl;
+			//	std::cout << "mvp transformed data" << std::endl;
+			//	Object3D::print(v[0]); std::cout << "\n";
+			//	Object3D::print(v[1]); std::cout << "\n";
+			//	Object3D::print(v[2]); std::cout << "\n";
+			//}
+
 
 			// clip
 			//std::vector<glm::vec4> points = _clipper.clip(v, 3);
@@ -124,99 +144,136 @@ void ScanlineRenderer::_assembleRenderData(
 			//	continue; // throw
 			//}
 
+			if (v[0].w <= 0 && v[1].w <= 0 && v[2].w <= 0) {
+				continue;
+			}
+			else if (v[0].w > 0 && v[1].w > 0 && v[2].w > 0) {
+				if (v[0].w < v[0].z && v[1].w < v[1].z && v[2].w < v[2].z) {
+					continue;
+				} else if (-v[0].w > v[0].z && -v[1].w > v[1].z && -v[2].w > v[2].z) {
+					continue;
+				}
+			}
+
 			std::vector<glm::vec4> points = { v[0], v[1], v[2] };
 
 			Polygon polygon;
 			// to screen position
-			std::vector<glm::vec3> screenPositions;
-			for (const auto& point : points) {
-				screenPositions.push_back(glm::vec3(
-					_windowWidth * (point.x / point.w + 1.0f) / 2.0f,
-					_windowHeight * (point.y / point.w + 1.0f) / 2.0f,
-					point.z / point.w));
+			int screenX[3], screenY[3];
+			double screenZ[3];
+
+			for (int j = 0; j < 3; ++j) {
+				screenX[j] = _windowWidth *  (points[j].x / points[j].w + 1.0f) / 2.0f;
+				screenY[j] = _windowHeight * (points[j].y / points[j].w + 1.0f) / 2.0f,
+				screenZ[j] = points[j].z / points[j].w;
 			}
+
+
+			//if (i == 3252 || i == 58521) {
+			//	std::cout << "polygon " << i << std::endl;
+			//	std::cout << "screen data" << std::endl;
+			//	std::cout << "\n";
+			//	printf("%d, %d, %f\n", screenX[0], screenY[0], screenZ[0]);
+			//	printf("%d, %d, %f\n", screenX[1], screenY[1], screenZ[1]);
+			//	printf("%d, %d, %f\n", screenX[2], screenY[2], screenZ[2]);
+			//}
+
+			//for (int j = 0; j < 3; ++j) {
+			//	Object3D::print(tri[j].position);
+			//	std::cout << " -> ";  Object3D::print(points[j]);
+			//	std::cout << " -> "; Object3D::print(screenPositions[j]);
+			//	std::cout << "\n";
+			//}
 
 			// get plane equation coefficients
 			polygon.a = polygon.b = polygon.c = polygon.d = 0.0f;
 			for (int j = 0; j < 3; ++j) {
-				polygon.a += screenPositions[j].y
-					* (screenPositions[(j + 1) % 3].z - screenPositions[(j + 2) % 3].z);
-				polygon.b += screenPositions[j].z
-					* (screenPositions[(j + 1) % 3].x - screenPositions[(j + 2) % 3].x);
-				polygon.c += screenPositions[j].x
-					* (screenPositions[(j + 1) % 3].y - screenPositions[(j + 2) % 3].y);
-				polygon.d -= screenPositions[j].x * 
-					(screenPositions[(j + 1) % 3].y * screenPositions[(j + 2) % 3].z 
-					 - screenPositions[(j + 2) % 3].y * screenPositions[(j + 1) % 3].z);
+				polygon.a += screenY[j] * (screenZ[(j + 1) % 3] - screenZ[(j + 2) % 3]);
+				polygon.b += screenZ[j] * (screenX[(j + 1) % 3] - screenX[(j + 2) % 3]);
+				polygon.c += screenX[j] * (screenY[(j + 1) % 3] - screenY[(j + 2) % 3]);
+				polygon.d -= screenX[j] * (screenY[(j + 1) % 3] * screenZ[(j + 2) % 3] - 
+					                       screenY[(j + 2) % 3] * screenZ[(j + 1) % 3]);
 			}
 
 			// id of the triangle
-			polygon.id = i;
+			polygon.id = static_cast<int>(i);
 
 			// number of scan line contained
 			int minY = std::numeric_limits<int>::max();
 			int maxY = std::numeric_limits<int>::min();
-			for (const auto& pos : screenPositions) {
-				minY = std::min(static_cast<int>(pos.y), minY);
-				maxY = std::max(static_cast<int>(pos.y), maxY);
+			for (int i = 0; i < 3; ++i) {
+				minY = std::min(screenY[i], minY);
+				maxY = std::max(screenY[i], maxY);
 			}
 
 			minY = std::max(0, minY);
-			maxY = std::min(_windowHeight - 1, maxY);
+			if (maxY < 0) {
+				continue;
+			} else if (maxY >= _windowHeight) {
+				maxY = _windowHeight - 1;
+			}
+
+			if (minY == maxY) {
+				continue;
+			}
+
 			polygon.dy = maxY - minY;
 
 			// get color(single color without interpolation)
 			glm::vec3 norm = glm::normalize(normalMat * tri[0].normal);
 			glm::vec3 diffuse = std::max(glm::dot(norm, lightDirection), 0.0f) * lightColor;
 			polygon.color = (ambient + diffuse) * objectColor;
+			//if ((normalMat * tri[0].normal).z < 0) {
+			//	polygon.color = glm::vec3(1, 0, 0);
+			//}
+
+			//if (i == 3054) {
+			//	Object3D::print(polygon.color); std::cout << std::endl;
+			//	polygon.color = glm::vec3(1.0f, 0.0f, 0.0f);
+			//}
 
 			_classifiedPolygonTable[maxY].push_back(polygon);
 
+			//if (polygon.id == 3252 || polygon.id == 58521) {
+			//	std::cout << "polygon id: " << polygon.id << std::endl;
+			//	_print(polygon);
+			//}
+
 			Edge edge;
 			// assemble edge of the polygon
-			for (size_t j = 0; j < screenPositions.size(); ++j) {
-				size_t m = j, n = (j + 1) % screenPositions.size();
-				float maxY = -std::numeric_limits<float>::max();
-				if (screenPositions[m].y > screenPositions[n].y) {
-					maxY = screenPositions[m].y;
-					edge.x = screenPositions[m].x;
-					float dy = screenPositions[m].y - screenPositions[n].y;
-					edge.dx = (screenPositions[n].x - screenPositions[m].x) / dy;
-					edge.dy = static_cast<int>(dy);
+			for (int j = 0; j < 3; ++j) {
+				int m = j, n = (j + 1) % 3;
+				// make sure that the screenY[m] < screenY[n]  
+				if (screenY[m] == screenY[n]) {
+					if (screenX[m] > screenX[n]) {
+						std::swap(m, n);
+					}
 				} else {
-					maxY = screenPositions[n].y;
-					edge.x = screenPositions[n].x;
-					float dy = screenPositions[n].y - screenPositions[m].y;
-					edge.dx = (screenPositions[m].x - screenPositions[n].x) / dy;
-					edge.dy = static_cast<int>(dy);
+					if (screenY[m] > screenY[n]) {
+						std::swap(m, n);
+					}
 				}
 
-				edge.id = i;
-				_classifiedEdgeTable[static_cast<int>(maxY)].push_front(edge);
+				if (screenY[n] < 0 || screenY[m] > _windowHeight) {
+					continue;
+				}
+
+				edge.x = screenX[n];
+				edge.dx =  1.0f * (screenX[m] - screenX[n]) / (screenY[n] - screenY[m] + 0.000001);
+				edge.dy = std::clamp(screenY[n], 0, _windowHeight - 1) -
+						  std::clamp(screenY[m], 0, _windowHeight - 1);
+				edge.id = static_cast<int>(i);
+
+				//if (edge.id == 3252 || edge.id == 58521) {
+				//	std::cout << "edge id: " << edge.id << std::endl;
+				//	_print(edge);
+				//}
+
+				_classifiedEdgeTable[std::clamp(screenY[n], 0, _windowHeight - 1)].push_front(edge);
 			}
 		}
 	}
 
-	std::cout << "poly list" << std::endl;
-	for (auto polygons : _classifiedPolygonTable) {
-		for (auto poly : polygons) {
-			std::cout << "(" << poly.a << "," << poly.b << "," << poly.c << "," << poly.d << ")" << std::endl;
-			std::cout << poly.id << std::endl;
-			std::cout << poly.dy << std::endl;
-			std::cout << "--------------------" << std::endl;
-		}
-	}
-
-	std::cout << "edge list" << std::endl;
-	for (auto edges : _classifiedEdgeTable) {
-		for (auto edge : edges) {
-			std::cout << edge.x << std::endl;
-			std::cout << edge.dx << std::endl;
-			std::cout << edge.dy << std::endl;
-			std::cout << edge.id << std::endl;
-			std::cout << "--------------------" << std::endl;
-		}
-	}
 }
 
 
@@ -234,98 +291,112 @@ void ScanlineRenderer::_scan(Framebuffer& framebuffer) {
 				if (edge.id == polygon.id && edge.dy > 0) { // drop 3 edge condition
 					edges.push_back(edge);
 				}
-			}
 
-			if (edges.size() != 2) {
-				std::cout << edges.size() << std::endl;
-				if (edges.size() == 1) {
-					std::cout << edges[0].x << std::endl;
-					std::cout << edges[0].dx << std::endl;
-					std::cout << edges[0].dy << std::endl;
-					std::cout << edges[0].id << std::endl;
+				if (edge.dy < 0) {
+					std::cout << "error: edge.dy < 0" << std::endl;
 				}
 			}
 
-			assert(edges.size() == 2);
+			if (edges.size() != 2) {
+				std::cout << "error: edges.size < 2 , true size " << edges.size() << std::endl;
+				continue;
+			}
+			//assert(edges.size() == 2);
 
-			// so that edge[0] is at left side
-			if (edges[0].x > edges[1].x || (edges[0].dx > edges[1].dx)) {
-				std::swap(edges[0], edges[1]);
+			int left = 0, right = 1;
+			if (edges[0].x > edges[1].x ||
+				(edges[0].x == edges[1].x && edges[0].dx > edges[1].dx)) {
+				left = 1, right = 0;
+			}
+
+			if (edges[0].x == edges[1].x && edges[0].dx == edges[1].dx) {
+				continue;
 			}
 
 			// add them into the active edge table
 			ActiveEdgePair edgePair{};
-			edgePair.xl = edges[0].x;
-			edgePair.xr = edges[1].x;
-			edgePair.dxl = edges[0].dx;
-			edgePair.dxr = edges[1].dx;
-			edgePair.dyl = edges[0].dy;
-			edgePair.dyr = edges[1].dy;
-			edgePair.zl = -(polygon.a * edges[0].x + polygon.b * y + polygon.d) / polygon.c;
+			edgePair.xl = edges[left].x;
+			edgePair.xr = edges[right].x;
+			edgePair.dxl = edges[left].dx;
+			edgePair.dxr = edges[right].dx;
+			edgePair.dyl = edges[left].dy;
+			edgePair.dyr = edges[right].dy;
+			edgePair.zl = -(polygon.a * (int)(edges[left].x) + polygon.b * y + polygon.d) / polygon.c;
 			edgePair.dzx = -polygon.a / polygon.c;
 			edgePair.dzy = polygon.b / polygon.c;
 			edgePair.id = polygon.id;
+
 			_activeEdgeTable.push_back(edgePair);
 		}
 
 		// for each edgePair
-		for (auto& edgePair : _activeEdgeTable) {
+		for (auto edgePairIt = _activeEdgeTable.begin(); edgePairIt != _activeEdgeTable.end();) {
 			// get the polygon the edge belong to
-			Polygon* pPolygon = nullptr;
-			for (const auto& polygon : _activePolygonTable) {
-				if (polygon.id == edgePair.id) {
-					pPolygon = const_cast<Polygon*>(&polygon);
-					break;
-				}
-			}
-
-			if (pPolygon == nullptr) {
-				std::cout << edgePair.id << std::endl;
-			}
+			Polygon* pPolygon = _findActivePolygon(edgePairIt->id);
 
 			assert(pPolygon != nullptr);
 
 			// update framebuffer & zbuffer
-			float zx = edgePair.zl;
-			for (float x = edgePair.xl; x <= edgePair.xr; x += 1.0f) {
-				if (_zbuffer->testAndSet(static_cast<float>(x), y, zx)) {
-					framebuffer.setPixel(static_cast<float>(x), y, pPolygon->color);
+			float zx = edgePairIt->zl;
+			for (int x = edgePairIt->xl; x < (int)edgePairIt->xr; ++x) {
+				if (x >= 0 && x < _windowWidth) {
+					if (_zbuffer->testAndSet(x, y, zx)) {
+						framebuffer.setPixel(x, y, pPolygon->color);
+					}
 				}
-				zx += edgePair.dzx;
+				zx += edgePairIt->dzx;
 			}
 
 			// update edge pair
-			edgePair.xl += edgePair.dxl;
-			edgePair.xr += edgePair.dxr;
-			edgePair.zl += edgePair.dzy + edgePair.dzx * edgePair.dxl;
+			edgePairIt->xl += edgePairIt->dxl;
+			edgePairIt->xr += edgePairIt->dxr;
+			edgePairIt->zl += edgePairIt->dzy + edgePairIt->dzx * edgePairIt->dxl;
 
-			edgePair.dyl -= 1;
-			edgePair.dyr -= 1;
+			edgePairIt->dyl -= 1;
+			edgePairIt->dyr -= 1;
 
-			// exchange outdated edges with new edges
-			if (edgePair.dyl <= 0) { // left 
-				for (const auto& edge : _classifiedEdgeTable[y]) {
-					if (edge.id == edgePair.id && edge.dx >= 0.0f) {
-						//??? do not need to change
-						//edgePair.xl = edge.x;
-						edgePair.dxl = edge.dx;
-						edgePair.dyl = edge.dy;
-					}
-				}
-			}
-
-			if (edgePair.dyr <= 0) { // right
-				for (const auto& edge : _classifiedEdgeTable[y]) {
-					for (const auto& edge : _classifiedEdgeTable[y]) {
-						if (edge.id == edgePair.id && edge.dx <= 0.0f) {
-							//??? do not need to change
-							//edgePair.xr = edge.x;
-							edgePair.dxl = edge.dx;
-							edgePair.dyl = edge.dy;
+			// exchange outdated edges with new edges in the same polygon
+			if ((edgePairIt->dyl <= 0 || edgePairIt->dyr <= 0) && y >= 1) {
+				std::vector<Edge> candidateEdges;
+				for (const auto& edge : _classifiedEdgeTable[static_cast<size_t>(y) - 1]) {
+					if (edge.id == edgePairIt->id) {
+						candidateEdges.push_back(edge);
+						if ((edgePairIt->dyl > 0 || edgePairIt->dyr > 0) || candidateEdges.size() > 1) {
+							break;
 						}
 					}
 				}
+
+				if (candidateEdges.empty()) {
+					_activeEdgeTable.erase(edgePairIt++);
+					continue;
+				}
+
+				if (candidateEdges.size() == 1) {
+					if (edgePairIt->dyl <= 0) {
+						Polygon* pPolygon = _findActivePolygon(edgePairIt->id);
+						assert(pPolygon != nullptr);
+
+						edgePairIt->xl = candidateEdges[0].x;
+						edgePairIt->dxl = candidateEdges[0].dx;
+						edgePairIt->dyl = candidateEdges[0].dy;
+						edgePairIt->zl = -(pPolygon->a * candidateEdges[0].x + pPolygon->b * y + pPolygon->d) / pPolygon->c;
+					}
+					else if (edgePairIt->dyr <= 0) {
+						edgePairIt->xr = candidateEdges[0].x;
+						edgePairIt->dxr = candidateEdges[0].dx;
+						edgePairIt->dyr = candidateEdges[0].dy;
+					}
+				}
+
+				if (edgePairIt->xl > edgePairIt->xr) {
+					edgePairIt->xl = edgePairIt->xr;
+					//std::cout << edgePairIt->xl - edgePairIt->xr << std::endl;
+					//std::cout << __LINE__ << " error" << std::endl;
+				}
 			}
+
+			++edgePairIt;
 		}
 
 		// update active polygon table
@@ -333,12 +404,24 @@ void ScanlineRenderer::_scan(Framebuffer& framebuffer) {
 			it->dy -= 1;
 			if (it->dy < 0) {
 				_activePolygonTable.erase(it++);
-			} else {
+			}
+			else {
 				++it;
 			}
 		}
-
 	}
+}
+
+
+
+Polygon* ScanlineRenderer::_findActivePolygon(int id) {
+	for (auto& polygon : _activePolygonTable) {
+		if (polygon.id == id) {
+			return &polygon;
+		}
+	}
+
+	return nullptr;
 }
 
 
@@ -347,23 +430,39 @@ void ScanlineRenderer::_renderWithScanLineZBuffer() {
 }
 
 
-void ScanlineRenderer::_renderWithHierarchicalZBuffer(const Camera& camera) {
+void ScanlineRenderer::_renderWithHierarchicalZBuffer(
+	const Camera& camera, 
+	const glm::vec3& objectColor,
+	const glm::vec3& lightColor,
+	const glm::vec3& lightDirection) {
 	_framebuffer.clear(_clearColor);
-	_quadTree->clearZBuffer();
+	_quadTree->clear();
 
+	glm::mat4x4 model = glm::mat4x4(1.0f);
 	glm::mat4x4 view = camera.getViewMatrix();
 	glm::mat4x4 projection = camera.getProjectionMatrix();
+
 	for (int i = 0; i < _triangles.size(); ++i) {
-		_quadTree->handleTriangle(_triangles[i], view, projection);
+		//if (i == 3054 / 3) {
+			_quadTree->handleTriangle(_triangles[i], 
+				model, view, projection, objectColor, lightColor, lightDirection);
+		//}
 	}
 
 	_framebuffer.render();
 }
 
-void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(const Camera& camera) {
-	_framebuffer.clear(_clearColor);
-	_quadTree->clearZBuffer();
 
+void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
+	const Camera& camera, 
+	const glm::vec3& objectColor,
+	const glm::vec3& lightColor,
+	const glm::vec3& lightDirection) {
+
+	_framebuffer.clear(_clearColor);
+	_quadTree->clear();
+
+	glm::mat4x4 model = glm::mat4x4(1.0f);
 	glm::mat4x4 view = camera.getViewMatrix();
 	glm::mat4x4 projection = camera.getProjectionMatrix();
 
@@ -385,11 +484,12 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(const Camera& camera
 		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
 		if (node->z < temp->node->box->center.z + temp->node->box->halfSide * 1.73206f) {
 			for (auto iter : temp->node->objects) {
-				_quadTree->handleTriangle(*iter, view, projection);
+				_quadTree->handleTriangle(*iter, model, view, projection, 
+					objectColor, lightColor, lightDirection);
 			}
 		}
 
-		ptrOctreeZNode child[8];
+		OctreeZNode* child[8];
 		int count = 0;
 		for (int i = 0; i < 8; ++i) {
 			if (temp->node->childExists & (1 << i)) {
@@ -408,4 +508,34 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(const Camera& camera
 	}
 
 	_framebuffer.render();
+}
+
+
+void ScanlineRenderer::_print(const Polygon& polygon) {
+	std::cout << "Polygon.a, b, c, d [" 
+		<< polygon.a << "," << polygon.b << "," << polygon.c << "," << polygon.d << "]\n";
+	std::cout << "Polygon.id " << polygon.id << "\n";
+	std::cout << "Polygon.dy " << polygon.dy << "\n";
+	std::cout << "-----------------------" << std::endl;
+}
+
+void ScanlineRenderer::_print(const Edge& edge) {
+	std::cout << "Edge.x " << edge.x << "\n";
+	std::cout << "Edge.dx " << edge.dx << "\n";
+	std::cout << "Edge.dy " << edge.dy << "\n";
+	std::cout << "Edge.id " << edge.id << "\n";
+	std::cout << "-----------------------" << std::endl;
+}
+
+void ScanlineRenderer::_print(const ActiveEdgePair& edgePair) {
+	std::cout << "ActiveEdgePair.[xl, xr] " << "[" << edgePair.xl << ", " << edgePair.xr << "]\n";
+	std::cout << "ActiveEdgePair.dxl " << edgePair.dxl << "\n";
+	std::cout << "ActiveEdgePair.dxr " << edgePair.dxr << "\n";
+	std::cout << "ActiveEdgePair.dyl " << edgePair.dyl << "\n";
+	std::cout << "ActiveEdgePair.dyr " << edgePair.dyr << "\n";
+	std::cout << "ActiveEdgePair.zl " << edgePair.zl << "\n";
+	std::cout << "ActiveEdgePair.dzx " << edgePair.dzx << "\n";
+	std::cout << "ActiveEdgePair.dzy " << edgePair.dzy << "\n";
+	std::cout << "ActiveEdgePair.id " << edgePair.id << "\n";
+	std::cout << "-----------------------" << std::endl;
 }

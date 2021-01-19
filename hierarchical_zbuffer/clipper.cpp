@@ -1,4 +1,5 @@
 #include "clipper.h"
+#include <iostream>
 
 
 /*
@@ -14,7 +15,7 @@ std::vector<glm::vec4> Clipper::clip(const glm::vec4* v, int vertexCount) {
 
 	std::vector<glm::vec4> result;
 	for (int i = 0; i < vertexCount; ++i) {
-		_clipPoint(v[i], ClipPlane::Left, result, first, s);
+		_clipPoint(v[i], _getPlane(0), result, first, s);
 	}
 
 	_closeClip(result, first, s);
@@ -30,27 +31,26 @@ std::vector<glm::vec4> Clipper::clip(const glm::vec4* v, int vertexCount) {
  */
 void Clipper::_clipPoint(const glm::vec4& v, enum ClipPlane plane,
 	std::vector<glm::vec4>& result, glm::vec4* first[], glm::vec4* s) {
-	if (!first[_planeIndex(plane)]) {
-		first[static_cast<int>(plane)] = const_cast<glm::vec4*>(&v);
-	}
-	else {
-		if (_cross(v, s[_planeIndex(plane)], plane)) {
-			glm::vec4 u = _intersect(v, s[_planeIndex(plane)], plane);
-			if (plane != _clipEnd()) {
-				_clipPoint(u, _nextPlane(plane), result, first, s);
-			}
-			else {
+	int index = _planeIndex(plane);
+	if (first[index] == nullptr) {
+		std::cout << "first: " << index << std::endl;
+		first[index] = const_cast<glm::vec4*>(&v);
+	} else {
+		if (_cross(v, s[index], plane)) {
+			glm::vec4 u = _intersect(v, s[index], plane);
+			if (index < 5) {
+				_clipPoint(u, _nextPlane(plane), result, first, s); 
+			} else {
 				result.push_back(u);
 			}
 		}
 	}
 
-	s[_planeIndex(plane)] = v;
+	s[index] = v;
 	if (_inside(v, plane)) {
-		if (plane != ClipPlane::Far) {
+		if (index < 5) {
 			_clipPoint(v, _nextPlane(plane), result, first, s);
-		}
-		else {
+		} else {
 			result.push_back(v);
 		}
 	}
@@ -64,19 +64,17 @@ void Clipper::_clipPoint(const glm::vec4& v, enum ClipPlane plane,
  * @return vector of homogeneous coordinates points representing a polygon
  */
 void Clipper::_closeClip(std::vector<glm::vec4>& result, glm::vec4* first[], glm::vec4* s) {
-	auto plane = _clipBegin();
-	do {
-		int index = _planeIndex(plane);
+	for (int index = 0; index < 6; ++index) {
+		enum ClipPlane plane = _getPlane(index);
 		if (_cross(s[index], *first[index], plane)) {
 			glm::vec4 v = _intersect(s[index], *first[index], plane);
-			if (plane != _clipEnd()) {
+			if (_planeIndex(plane) < 5) {
 				_clipPoint(v, _nextPlane(plane), result, first, s);
-			}
-			else {
+			} else {
 				result.push_back(v);
 			}
 		}
-	} while (plane != _clipEnd());
+	}
 }
 
 
@@ -128,6 +126,8 @@ bool Clipper::_inside(const glm::vec4& v, enum ClipPlane plane) {
 bool Clipper::_cross(const glm::vec4& v1, const glm::vec4& v2, enum ClipPlane plane) {
 	if (_inside(v1, plane) == _inside(v2, plane)) {
 		return false;
+	} else if (v1.w <= 0 || v2.w <= 0) {
+		return false;
 	}
 
 	return true;
@@ -149,37 +149,27 @@ glm::vec4 Clipper::_intersect(const glm::vec4& v1, const glm::vec4& v2, enum Cli
 	switch (plane) {
 	case ClipPlane::Left:
 		t = -(v1.x + v1.w) / (dv.x + dv.w);
+		break;
 	case ClipPlane::Right:
 		t = (v1.x + v1.w) / (dv.x + dv.w);
+		break;
 	case ClipPlane::Bottom:
 		t = -(v1.y + v1.w) / (dv.y + dv.w);
+		break;
 	case ClipPlane::Top:
 		t = (v1.y + v1.w) / (dv.y + dv.w);
+		break;
 	case ClipPlane::Near:
 		t = -(v1.z + v1.w) / (dv.z + dv.w);
+		break;
 	case ClipPlane::Far:
 		t = (v1.z + v1.w) / (dv.z + dv.w);
+		break;
 	}
 
+	std::cout << "t:" << t << std::endl;
+
 	return v1 + t * dv;
-}
-
-
-/*
- * @brief get the first clip plane
- * @return the first clip plane
- */
-enum Clipper::ClipPlane Clipper::_clipBegin() const {
-	return static_cast<enum ClipPlane>(0);
-}
-
-
-/*
- * @brief get the last clip plane
- * @return the last clip plane
- */
-enum Clipper::ClipPlane Clipper::_clipEnd() const {
-	return static_cast<enum ClipPlane>(5);
 }
 
 
@@ -200,4 +190,9 @@ enum Clipper::ClipPlane Clipper::_nextPlane(enum ClipPlane plane) const {
  */
 int Clipper::_planeIndex(enum ClipPlane plane) const {
 	return static_cast<int>(plane);
+}
+
+
+enum Clipper::ClipPlane Clipper::_getPlane(int index) const {
+	return static_cast<enum ClipPlane>(index);
 }
