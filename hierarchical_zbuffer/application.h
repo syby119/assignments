@@ -2,10 +2,11 @@
 
 #include <array>
 #include <chrono>
-#include <cstdlib> // exit
+#include <cstdlib>
+#include <list>
 #include <iostream>
 #include <string>
-//#include <fstream>
+#include <vector>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,6 +17,10 @@
 #include "quadtree.h"
 #include "octree.h"
 #include "framebuffer.h"
+#include "zbuffer.h"
+#include "quadtree.h"
+#include "clipper.h"
+#include "scanline_renderer.h"
 
 
 class Application {
@@ -36,13 +41,10 @@ public:
 	void run();
 
 	/*
-	 * @brief render mode
+	 * @brief renderer
 	 */
-	enum class RenderMode {
-		Gpu,
-		ScanLineZBuffer,
-		HierarchicalZBuffer,
-		OctreeHierarchicalZBuffer
+	enum class RendererType {
+		GpuRenderer, ScanLineRenderer
 	};
 
 private:
@@ -53,36 +55,45 @@ private:
 	int _windowHeight = 720;
 	glm::vec4 _clearColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	/* trees */
-	QuadTree* _quadTree;
-	Octree* _octree;
-
 	/* time */
 	std::chrono::time_point<std::chrono::high_resolution_clock> _lastTimeStamp;
 	double _deltaTime = 0.0f;
 
 	/* model */
 	std::vector<Model> _models;
-	std::vector<std::string> _modelFilepaths{ "../resources/soccerball.obj" };
+	std::vector<std::string> _modelFilepaths{ "../resources/bunny.obj" };
 
 	/* triangle data: local space */
 	std::vector<Triangle> _triangles;
 
-	///* camera */
-	FpsCamera _fpsCamera{glm::radians(54.0f), 1.0f * _windowWidth / _windowHeight };
+	/* camera */
+	FpsCamera _fpsCamera{glm::radians(54.0f), 1.0f * _windowWidth / _windowHeight, 1.0f, 500.0f };
 
 	/* input */
 	KeyboardInput _keyboardInput;
 	MouseInput _mouseInput;
 
-	/* render mode */
-	enum RenderMode _renderMode = RenderMode::OctreeHierarchicalZBuffer;
-
 	/* shader program for test */
-	Shader* _shader;
+	Shader* _shader = nullptr;
 
 	/* framebuffer */
 	Framebuffer* _framebuffer = nullptr;
+
+	/* object color */
+	glm::vec3 _objectColor = glm::vec3(0.9f, 0.9f, 0.9f);
+
+	/* light color */
+	glm::vec3 _lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+	/* light direction */
+	glm::vec3 _lightDirection = -glm::normalize(glm::vec3(0.8f, -3.0f, -1.5f));
+
+	/* renderer mode */
+	enum RendererType _rendererType = RendererType::GpuRenderer;
+
+	/* renderer */
+	ScanlineRenderer* _scanlineRenderer = nullptr;
+
 
 	/*
 	 * @brief load models from model path
@@ -117,20 +128,11 @@ private:
 	 */
 	void _renderFrame();
 
+
 	/*
 	 * @brief render frame with gpu
 	 */
 	void _renderWithGpu();
 
-	// todo
-	void _renderWithScanLineZBuffer();
 
-	// todo
-	void _renderWithHierarchicalZBuffer();
-	
-	// todo
-	void _renderWithOctreeHierarchicalZBuffer();
 };
-
-
-

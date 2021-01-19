@@ -1,5 +1,5 @@
 //#define SHOW_CALLBACK
-#define SHOW_RENDER_INFO
+//#define SHOW_RENDER_INFO
 
 #include "application.h"
 
@@ -39,11 +39,7 @@ Application::Application() {
 		exit(EXIT_FAILURE);
 	}
 
-	if (_renderMode == RenderMode::Gpu) {
-		glEnable(GL_DEPTH_TEST);
-	}
-
-	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 10.0f));
+	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 15.0f));
 
 
 	_loadModels();
@@ -62,29 +58,11 @@ Application::Application() {
 			_vertices[_indices[i]], _vertices[_indices[i + 1]] , _vertices[_indices[i + 2]] });
 	}
 
-	// new tree
-	switch (_renderMode) {
-	case RenderMode::ScanLineZBuffer:
-
-		break;
-	case RenderMode::HierarchicalZBuffer:
-		_quadTree = new QuadTree(_windowWidth, _windowHeight, _framebuffer);
-		break;
-	case RenderMode::OctreeHierarchicalZBuffer:
-		_quadTree = new QuadTree(_windowWidth, _windowHeight, _framebuffer);
-		_octree = new Octree(&_triangles, 10);
-		break;
-	}
-
-	// debug
-	/*std::ofstream fileOutput;
-	fileOutput.open("./log.txt");
-	for (int i = 0; i < _windowWidth*_windowHeight; ++i) {
-		fileOutput << _quadTree->indexNodeBuffer[i] << std::endl;
-	}
-	fileOutput.close();*/
+	_scanlineRenderer = new ScanlineRenderer(*_framebuffer, _windowWidth, _windowHeight, _triangles, _clearColor);
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
+
+	std::cout << "Gpu renderer" << std::endl;
 }
 
 
@@ -159,14 +137,14 @@ void Application::_initShader() {
 	const char* fsCode =
 		"#version 330 core\n"
 		"in vec3 normal;\n"
+		"uniform vec3 objectColor;\n"
+		"uniform vec3 lightColor;\n"
+		"uniform vec3 lightDirection;\n"
 		"out vec4 color;\n"
 		"void main() {\n"
-		"	vec3 objectColor = vec3(1.0, 0.0, 0.0);\n"
-		"	vec3 lightColor = vec3(1.0, 1.0, 1.0);\n"
 		"	vec3 ambient = 0.1 * lightColor;\n"
-		"	vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));\n"
 		"	vec3 norm = normalize(normal);\n"
-		"	vec3 diffuse = max(dot(norm, lightDir), 0.0) * lightColor;\n"
+		"	vec3 diffuse = max(dot(norm, lightDirection), 0.0) * lightColor;\n"
 		"	vec3 result = (ambient + diffuse) * objectColor;\n"
 		"	color = vec4(result, 1.0);\n"
 		"}\n";
@@ -245,11 +223,28 @@ void Application::_keyPressedCallback(GLFWwindow* window, int key, int scancode,
  * @brief handle input and update camera
  */
 void Application::_handleInput() {
-	_fpsCamera.update(_keyboardInput, _mouseInput, _deltaTime);
+	_fpsCamera.update(_keyboardInput, _mouseInput, static_cast<float>(_deltaTime));
 	
-	//for (auto& keyPress : _keyboardInput.keyPressed) {
-	//	keyPress = false;
-	//}
+	if (_keyboardInput.keyPressed[GLFW_KEY_0]) {
+		_rendererType = RendererType::GpuRenderer;
+
+		std::cout << "gpu renderer" << std::endl;
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_1]) {
+		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::ZBuffer);
+
+		std::cout << "scanline renderer with zbuffer" << std::endl;
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_2]) {
+		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::HierarchicalZBuffer);
+
+		std::cout << "scanline renderer with hierarchical zbuffer" << std::endl;
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_3]) {
+		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::OctreeHierarchicalZBuffer);
+
+		std::cout << "scanline renderer with hierarchical zbuffer and octree" << std::endl;
+	}
 
 	_mouseInput.move.xOld = _mouseInput.move.xCurrent;
 	_mouseInput.move.yOld = _mouseInput.move.yCurrent;
@@ -260,29 +255,47 @@ void Application::_handleInput() {
  */
 void Application::_renderFrame() {
 	auto start = std::chrono::high_resolution_clock::now();
-	switch (_renderMode) {
-		case RenderMode::Gpu:
+	switch (_rendererType) {
+		case RendererType::GpuRenderer:
 			_renderWithGpu();
 			break;
-		case RenderMode::ScanLineZBuffer:
-			_renderWithScanLineZBuffer();
-			break;
-		case RenderMode::HierarchicalZBuffer:
-			_renderWithHierarchicalZBuffer();
-			break;
-		case RenderMode::OctreeHierarchicalZBuffer:
-			_renderWithOctreeHierarchicalZBuffer();
+		case RendererType::ScanLineRenderer:
+			_scanlineRenderer->render(*_framebuffer, 
+				_fpsCamera, _models, _objectColor, _lightColor, _lightDirection);
 			break;
 	}
+
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto milliseconds = std::chrono::duration<double, std::milli>(stop - start).count();
+
+	if (_rendererType == RendererType::GpuRenderer) {
+		_windowTitle = "gpu renderer";
+	} else {
+		switch (_scanlineRenderer->getRenderMode()) {
+		case ScanlineRenderer::RenderMode::ZBuffer:
+			_windowTitle = "scanline renderer with zbuffer";
+			break;
+		case ScanlineRenderer::RenderMode::HierarchicalZBuffer:
+			_windowTitle = "scanline renderer with hierarchical zbuffer";
+			break;
+		case ScanlineRenderer::RenderMode::OctreeHierarchicalZBuffer:
+			_windowTitle = "scanline renderer with octree and hierarchical zBuffer";
+			break;
+		}
+	}
+
+	_windowTitle += "  render time: " + std::to_string(milliseconds) + "ms";
+	glfwSetWindowTitle(_window, _windowTitle.c_str());
+
 
 #ifdef SHOW_RENDER_INFO
 	std::cout << "+ render time: " << milliseconds << " ms" << std::endl;
 #endif
 }
 
+
 void Application::_renderWithGpu() {
+	glEnable(GL_DEPTH_TEST);
 	glClearColor(_clearColor[0], _clearColor[1], _clearColor[2], _clearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -292,6 +305,9 @@ void Application::_renderWithGpu() {
 	_shader->use();
 	_shader->setMat4("projection", p);
 	_shader->setMat4("view", v);
+	_shader->setVec3("objectColor", _objectColor);
+	_shader->setVec3("lightColor", _lightColor);
+	_shader->setVec3("lightDirection", _lightDirection);
 	
 	for (const auto& model : _models) {
 		// mvp matrices
@@ -300,65 +316,5 @@ void Application::_renderWithGpu() {
 
 		model.draw(*_shader);
 	}
+	glDisable(GL_DEPTH_TEST);
 }
-
-void Application::_renderWithScanLineZBuffer() {
-	/* write your code here */
-	_framebuffer->clear(_clearColor);
-	for (int i = 0; i < _windowWidth; ++i) {
-		for (int j = 0; j < 10; ++j) {
-			_framebuffer->setPixel(i, j, glm::vec3(1.0f, 0.0f, 0.0f));
-		}
-	}
-	_framebuffer->render();
-}
-
-void Application::_renderWithHierarchicalZBuffer() {
-	_framebuffer->clear(_clearColor);
-	_quadTree->clearZBuffer();
-
-	glm::mat4x4 view = _fpsCamera.getViewMatrix();
-	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();
-	for (int i = 0; i < _triangles.size(); ++i) {
-		_quadTree->handleTriangle(_triangles[i], view, projection);
-	}
-	_framebuffer->render();
-}
-
-void Application::_renderWithOctreeHierarchicalZBuffer() {
-	_framebuffer->clear(_clearColor);
-	_quadTree->clearZBuffer();
-
-	glm::mat4x4 view = _fpsCamera.getViewMatrix();
-	glm::mat4x4 projection = _fpsCamera.getProjectionMatrix();
-	
-	std::stack<ptrOctreeZNode> stackNode;
-	stackNode.push(new OctreeZNode{ 0.0f, _octree->getRoot() });
-	while (!stackNode.empty()) {
-		ptrOctreeZNode temp = stackNode.top();
-		stackNode.pop();
-		// 直接渲染三角形
-		for (auto iter : temp->node->objects) {
-			_quadTree->handleTriangle(*iter, view, projection);
-		}
-		ptrOctreeZNode child[8];
-		int count = 0;
-		for (int i = 0; i < 8; ++i) {
-			if (temp->node->childExists & (1 << i)) {
-				uint32_t locCodeChild = temp->node->locCode | i;
-				OctreeNode* childNode = _octree->lookupNode(locCodeChild);
-				glm::vec4 Vv = view * glm::vec4(childNode->box->center, 1.0f);
-				child[count++] = new OctreeZNode{ Vv.z, childNode };
-			}
-		}
-		std::sort(child, child + count, [](const ptrOctreeZNode& a, const ptrOctreeZNode& b) {
-			return a->z > b->z;
-		});
-		while (--count > 0) {
-			stackNode.push(child[count]);
-		}
-	}
-
-	_framebuffer->render();
-}
-

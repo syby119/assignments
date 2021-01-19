@@ -31,11 +31,12 @@ void Octree::buildBoundingBox() {
 
 void Octree::buildOctree() {
 	nodes[root->locCode] = *root;
-	splitNode(root);
+	splitNode(root, 0);
 }
 
-void Octree::splitNode(OctreeNode* node) {
-	if (node->objects.size() < threshold)
+void Octree::splitNode(OctreeNode* node, int depth) {
+	//std::cout << "call split node" << std::endl;
+	if (node->objects.size() < threshold || depth >= 10)
 		return;
 	glm::vec3 center = node->box->center;
 	float halfSide = node->box->halfSide;
@@ -52,8 +53,8 @@ void Octree::splitNode(OctreeNode* node) {
 			locCodeTemp[1] == locCodeTemp[2]) {
 			// 构建新的子树node
 			const uint32_t locCodeChild = (node->locCode << 3) | locCodeTemp[0];
-			std::cout << "locCodeChild: " << locCodeChild << std::endl;
-			std::cout << "Depth child: " << getNodeTreeDepth(&nodes[locCodeChild]) << std::endl;
+			//std::cout << "locCodeChild: " << locCodeChild << std::endl;
+			//std::cout << "Depth child: " << getNodeTreeDepth(&nodes[locCodeChild]) << std::endl;
 			// 构造一个新节点
 			if (!(node->childExists&(1 << locCodeTemp[0]))) {
 				node->childExists |= 1 << (locCodeTemp[0]);
@@ -82,7 +83,7 @@ void Octree::splitNode(OctreeNode* node) {
 		if (node->childExists&(1 << i)) {
 			const uint32_t locCodeChild = (node->locCode << 3) | i;
 			auto* child = lookupNode(locCodeChild);
-			splitNode(child);
+			splitNode(child, depth + 1);
 		}
 	}
 }
@@ -98,6 +99,6 @@ OctreeNode* Octree::lookupNode(const uint32_t locCode) {
 
 size_t Octree::getNodeTreeDepth(const OctreeNode* node) {
 	int depth = 0;
-	for (uint32_t lc = node->locCode; lc != 1; lc >>= 3, ++depth);
+	for (uint32_t lc = node->locCode; lc > 1; lc >>= 3, ++depth);
 	return depth;
 }

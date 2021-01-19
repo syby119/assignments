@@ -425,19 +425,16 @@ glm::vec3 Object3D::quaternionToEulerAngles(const glm::quat& q, enum RotateOrder
  * @return quaternion
  */
 glm::quat Object3D::eulerAnglesToQuaternion(const glm::vec3& eulerAngles, enum RotateOrder order) {
-	glm::quat ret;
 	glm::quat qx = glm::angleAxis(eulerAngles.x, glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::quat qy = glm::angleAxis(eulerAngles.y, glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::quat qz = glm::angleAxis(eulerAngles.z, glm::vec3(0.0f, 0.0f, 1.0f));
 	
 	switch (order) {
-		case RotateOrder::XYZ: ret = qz * qy * qx; break;
-		case RotateOrder::YZX: ret = qx * qz * qy; break;
-		case RotateOrder::ZXY: ret = qy * qx * qz; break;
-		case RotateOrder::XZY: ret = qy * qz * qx; break;
-		case RotateOrder::YXZ: ret = qz * qx * qy; break;
-		case RotateOrder::ZYX: ret = qx * qy * qz; break;
+		case RotateOrder::XYZ: return qz * qy * qx;
+		case RotateOrder::YZX: return qx * qz * qy;
+		case RotateOrder::ZXY: return qy * qx * qz;
+		case RotateOrder::XZY: return qy * qz * qx;
+		case RotateOrder::YXZ: return qz * qx * qy;
+		case RotateOrder::ZYX: return qx * qy * qz;
 	}
-
-	return ret;
 }

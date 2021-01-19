@@ -1,4 +1,5 @@
 #include "framebuffer.h"
+#include <algorithm>
 
 
 Framebuffer::Framebuffer(int width, int height) :
@@ -73,9 +74,9 @@ Framebuffer::~Framebuffer() {
 
 void Framebuffer::setPixel(int x, int y, const glm::vec3& color) {
 	const int offset = 3 * (y * _width + x);
-	_pixels[offset] = static_cast<uint8_t>(255 * color.r);
-	_pixels[offset + 1] = static_cast<uint8_t>(255 * color.g);
-	_pixels[offset + 2] = static_cast<uint8_t>(255 * color.b);
+	_pixels[offset] = static_cast<uint8_t>(255 * std::clamp(color.r, 0.0f, 1.0f));
+	_pixels[offset + 1] = static_cast<uint8_t>(255 * std::clamp(color.g, 0.0f, 1.0f));
+	_pixels[offset + 2] = static_cast<uint8_t>(255 * std::clamp(color.b, 0.0f, 1.0f));
 }
 
 
