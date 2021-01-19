@@ -3,8 +3,8 @@ d:\desktop\senior\graphics\assignments\hierarchical_zbuffer\application.cpp(248)
   main.cpp
   octree.cpp
   正在生成代码
-  333 of 2262 functions (14.7%) were compiled, the rest were copied from previous compilation.
-    277 functions were new in current compilation
-    113 functions had inline decision re-evaluated but remain unchanged
+  10 of 2257 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    32 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   hierarchical_zbuffer.vcxproj -> D:\Desktop\senior\graphics\assignments\x64\Release\hierarchical_zbuffer.exe

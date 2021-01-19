@@ -39,20 +39,21 @@ void Octree::splitNode(OctreeNode* node) {
 		return;
 	glm::vec3 center = node->box->center;
 	float halfSide = node->box->halfSide;
-	for (auto iter : node->objects) {
+	for (auto iter = node->objects.begin(); iter != node->objects.end(); ) {
 		uint32_t locCodeTemp[3] = {0, 0, 0};
 		for (int i = 0; i < 3; ++i) {
-			locCodeTemp[i] |= iter->v[i].position[0] > center[0] ? 1 : 0;
+			locCodeTemp[i] |= (*iter)->v[i].position[0] > center[0] ? 1 : 0;
 			locCodeTemp[i] <<= 1;
-			locCodeTemp[i] |= iter->v[i].position[1] > center[1] ? 1 : 0;
+			locCodeTemp[i] |= (*iter)->v[i].position[1] > center[1] ? 1 : 0;
 			locCodeTemp[i] <<= 1;
-			locCodeTemp[i] |= iter->v[i].position[2] > center[2] ? 1 : 0;
+			locCodeTemp[i] |= (*iter)->v[i].position[2] > center[2] ? 1 : 0;
 		}
 		if (locCodeTemp[0] == locCodeTemp[1] &&
 			locCodeTemp[1] == locCodeTemp[2]) {
 			// 构建新的子树node
 			const uint32_t locCodeChild = (node->locCode << 3) | locCodeTemp[0];
 			std::cout << "locCodeChild: " << locCodeChild << std::endl;
+			std::cout << "Depth child: " << getNodeTreeDepth(&nodes[locCodeChild]) << std::endl;
 			// 构造一个新节点
 			if (!(node->childExists&(1 << locCodeTemp[0]))) {
 				node->childExists |= 1 << (locCodeTemp[0]);
@@ -67,9 +68,12 @@ void Octree::splitNode(OctreeNode* node) {
 			}
 			// 赋予三角形
 			auto *child = lookupNode(locCodeChild);
-			child->objects.insert(iter);
-			node->objects.erase(iter);
+			child->objects.insert(*iter);
+			node->objects.erase(iter++);
 			// move triangle
+		}
+		else {
+			++iter;
 		}
 	}
 
