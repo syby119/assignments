@@ -74,10 +74,10 @@ void ScanlineRenderer::_clearRenderData() {
 		_zbuffer->clear();
 		break;
 	case RenderMode::HierarchicalZBuffer:
-		_quadTree->clear();
+		//_quadTree->clear();
 		break;
 	case RenderMode::OctreeHierarchicalZBuffer:
-		_quadTree->clear();
+		//_quadTree->clear();
 		break;
 	}
 }
@@ -467,7 +467,7 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 	glm::mat4x4 projection = camera.getProjectionMatrix();
 
 	std::stack<ptrOctreeZNode> stackNode;
-	stackNode.push(new OctreeZNode{ 0.0f, _octree->getRoot() });
+	stackNode.push(new OctreeZNode{ 1.0f, _octree->getRoot() });
 	while (!stackNode.empty()) {
 		ptrOctreeZNode temp = stackNode.top();
 		stackNode.pop();
@@ -482,7 +482,7 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 		screenRadius = int((PVvec.x / PVvec.w + 1.0f) * _windowWidth / 2);
 
 		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
-		if (node->z < temp->node->box->center.z + temp->node->box->halfSide * 1.73206f) {
+		if (node->z > temp->node->box->center.z + temp->node->box->halfSide * 1.73206f) {
 			for (auto iter : temp->node->objects) {
 				_quadTree->handleTriangle(*iter, model, view, projection, 
 					objectColor, lightColor, lightDirection);
@@ -495,12 +495,12 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 			if (temp->node->childExists & (1 << i)) {
 				uint32_t locCodeChild = (temp->node->locCode << 3) | i;
 				OctreeNode* childNode = _octree->lookupNode(locCodeChild);
-				glm::vec4 Vv = view * glm::vec4(childNode->box->center, 1.0f);
-				child[count++] = new OctreeZNode{ Vv.z, childNode };
+				glm::vec4 PVv = projection * view * glm::vec4(childNode->box->center, 1.0f);
+				child[count++] = new OctreeZNode{ PVv.z, childNode };
 			}
 		}
 		std::sort(child, child + count, [](const ptrOctreeZNode& a, const ptrOctreeZNode& b) {
-			return a->z > b->z;
+			return a->z < b->z;
 			});
 		while (count > 0) {
 			stackNode.push(child[--count]);

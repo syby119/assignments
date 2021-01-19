@@ -45,11 +45,11 @@ QuadTree::~QuadTree() {
 void QuadTree::clear() {
 	const int resolution = _windowWidth * _windowHeight;
 	for (int i = 0; i < resolution; ++i) {
-		_zbuffer[i] = 1.0f;
+		_zbuffer[i] = 5.0f;
 	}
 
 	for (auto node : _nodes) {
-		node.second.z = 1.0f;
+		node.second.z = 5.0f;
 	}
 }
 
@@ -60,7 +60,7 @@ void QuadTree::_construct() {
 	_root->box = new QuadBoundingBox{ 
 		0, _windowWidth, 0, _windowHeight, (_windowWidth + 1) / 2, (_windowHeight + 1) / 2 };
 	//_root->z = -10000.0f;
-	_root->z = 1.0f;
+	_root->z = 5.0f;
 	_splitNode(_root);
 }
 
@@ -182,6 +182,34 @@ QuadTreeNode* QuadTree::searchNode(int screenX, int screenY, int screenRadius) {
 }
 
 /*
+ * @brief test a node that can the range of pixels
+ */
+bool QuadTree::test(int* screenX, int* screenY, float z) {
+	QuadTreeNode* node = _root;
+	while (true) {
+		if (node->z < z)
+			return false;
+		uint8_t quadCode[3] = { 0, 0, 0 };
+		for (int i = 0; i < 3; ++i) {
+			quadCode[i] |= screenY[i] < node->box->centerY ? 0 : 1;
+			quadCode[i] <<= 1;
+			quadCode[i] |= screenX[i] < node->box->centerX ? 0 : 1;
+		}
+
+		if (quadCode[0] == quadCode[1] &&
+			quadCode[1] == quadCode[2] &&
+			node->childExists & (1 << quadCode[0])) {
+			uint32_t locCodeChild = (node->locCode << 2) | quadCode[0];
+			node = &_nodes[locCodeChild];
+		}
+		else {
+			return true;
+		}
+	}
+}
+
+
+/*
  * @brief draw a triangle with scan line
  */
 void QuadTree::handleTriangle(
@@ -196,9 +224,8 @@ void QuadTree::handleTriangle(
 	float screenZ[3];
 	
 	float minZ = _processTriangle(tri, model, view, projection, screenX, screenY, screenZ);
-	QuadTreeNode* node = searchNode(screenX, screenY);
-
-	if (node->z > minZ) {
+	
+	if (test(screenX, screenY, minZ)) {
 		const glm::mat3x3 normalMat = glm::mat3x3(glm::transpose(inverse(model)));
 		glm::vec3 ambient = 0.1f * lightColor;
 		glm::vec3 norm = glm::normalize(normalMat * tri.v[0].normal);
@@ -213,18 +240,18 @@ void QuadTree::handleTriangle(
 void QuadTree::update(QuadTreeNode* node) {
 	if (node->locCode > 1) {
 		QuadTreeNode* nodeParent = _getParent(node);
-		float minZ = 1.0f;
+		float maxZ = -1.0f;
 
 		for (int i = 0; i < 4; ++i) {
 			if (nodeParent->childExists & (1 << i)) {
 				uint32_t locCodeChild = nodeParent->locCode | i;
 				QuadTreeNode* nodeChild = _getNode(locCodeChild);
-				minZ = std::min(minZ, nodeChild->z);
+				maxZ = std::max(maxZ, nodeChild->z);
 			}
 		}
 
-		if (minZ > nodeParent->z) {
-			nodeParent->z = minZ;
+		if (maxZ < nodeParent->z) {
+			nodeParent->z = maxZ;
 			update(nodeParent);
 		}
 	}

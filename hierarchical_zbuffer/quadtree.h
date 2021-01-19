@@ -44,6 +44,10 @@ public:
 	 */
 	QuadTreeNode* searchNode(int* screenX, int* screenY);
 
+	/*
+	 * @brief search a node that can contain with 3 screen coordinates representing a triangle
+	 */
+	bool test(int* screenX, int* screenY, float z);
 
 	/*
 	 * @brief search a node that can the range of pixels
