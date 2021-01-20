@@ -56,7 +56,7 @@ public:
 	/*
 	 * @brief draw a triangle with scan line
 	 */
-	void handleTriangle(const Triangle& tri, 
+	bool handleTriangle(const Triangle& tri, 
 		const glm::mat4x4& model, 
 		const glm::mat4x4& view, 
 		const glm::mat4x4& projection, 

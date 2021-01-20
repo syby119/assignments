@@ -43,6 +43,11 @@ public:
 	void getFaces(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) const;
 
 	/*
+	 * @brief get all triangles
+	 */
+	void getTriangles(std::vector<Triangle>& triangles) const;
+
+	/*
 	 * @brief render model with gpu
 	 */
 	void draw(Shader& shader) const;

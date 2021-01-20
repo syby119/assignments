@@ -220,7 +220,7 @@ void QuadTree::activateHierachical(bool active) {
 /*
  * @brief draw a triangle with scan line
  */
-void QuadTree::handleTriangle(
+bool QuadTree::handleTriangle(
 	const Triangle& tri, 
 	const glm::mat4x4& model, 
 	const glm::mat4x4& view, 
@@ -241,6 +241,7 @@ void QuadTree::handleTriangle(
 		glm::vec3 color = (ambient + diffuse) * objectColor;
 		
 		_renderTriangle(screenX, screenY, screenZ, color);
+		return false;
 	} else if (test(screenX, screenY, minZ)) {
 		const glm::mat3x3 normalMat = glm::mat3x3(glm::transpose(inverse(model)));
 		glm::vec3 ambient = 0.1f * lightColor;
@@ -249,6 +250,9 @@ void QuadTree::handleTriangle(
 		glm::vec3 color = (ambient + diffuse) * objectColor;
 
 		_renderTriangle(screenX, screenY, screenZ, color);
+		return false;
+	} else {
+		return true;
 	}
 }
 

@@ -93,6 +93,7 @@ void ScanlineRenderer::_assembleRenderData(
 	const glm::mat4 projMat = camera.getProjectionMatrix();
 	const glm::mat4 viewMat = camera.getViewMatrix();
 
+	int pid = 0;
 	for (const auto& model : models) {
 		glm::mat4 modelMat = model.getModelMatrix();
 		const glm::mat4x4 mvp = projMat * viewMat * modelMat;
@@ -101,10 +102,18 @@ void ScanlineRenderer::_assembleRenderData(
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
+		//std::cout << "before" << std::endl;
+		//std::cout << vertices.size() << std::endl;
+		//std::cout << indices.size() << std::endl;
 		model.getFaces(vertices, indices);
+		//std::cout << "after" << std::endl;
+		//std::cout << vertices.size() << std::endl;
+		//std::cout << indices.size() << std::endl;
+
 
 		// for all triangles
 		for (size_t i = 0; i < indices.size(); i += 3) {
+
 			// get the raw data of a triangle
 			Vertex tri[3] = {
 				vertices[indices[i]],
@@ -165,7 +174,6 @@ void ScanlineRenderer::_assembleRenderData(
 				screenZ[j] = points[j].z / points[j].w;
 			}
 
-
 			//if (i == 3252 || i == 58521) {
 			//	std::cout << "polygon " << i << std::endl;
 			//	std::cout << "screen data" << std::endl;
@@ -193,7 +201,7 @@ void ScanlineRenderer::_assembleRenderData(
 			}
 
 			// id of the triangle
-			polygon.id = static_cast<int>(i);
+			polygon.id = pid;
 
 			// number of scan line contained
 			int minY = std::numeric_limits<int>::max();
@@ -259,7 +267,7 @@ void ScanlineRenderer::_assembleRenderData(
 				edge.dx =  1.0f * (screenX[m] - screenX[n]) / (screenY[n] - screenY[m] + 0.000001);
 				edge.dy = std::clamp(screenY[n], 0, _windowHeight - 1) -
 						  std::clamp(screenY[m], 0, _windowHeight - 1);
-				edge.id = static_cast<int>(i);
+				edge.id = pid;
 
 				//if (edge.id == 3252 || edge.id == 58521) {
 				//	std::cout << "edge id: " << edge.id << std::endl;
@@ -268,6 +276,9 @@ void ScanlineRenderer::_assembleRenderData(
 
 				_classifiedEdgeTable[std::clamp(screenY[n], 0, _windowHeight - 1)].push_front(edge);
 			}
+
+			// increase polygon uuid
+			++pid;
 		}
 	}
 
@@ -291,6 +302,10 @@ void ScanlineRenderer::_scan(Framebuffer& framebuffer) {
 			}
 
 			assert(edges.size() == 2);
+
+			if (edges.empty()) {
+				continue;
+			}
 
 			int left = 0, right = 1;
 			if (edges[0].x > edges[1].x ||
@@ -332,7 +347,7 @@ void ScanlineRenderer::_scan(Framebuffer& framebuffer) {
 					if (_zbuffer->testAndSet(x, y, zx)) {
 						framebuffer.setPixel(x, y, pPolygon->color);
 					}
-				}
+				} 
 				zx += edgePairIt->dzx;
 			}
 
@@ -412,11 +427,6 @@ Polygon* ScanlineRenderer::_findActivePolygon(int id) {
 }
 
 
-//void ScanlineRenderer::_renderWithZBuffer() {
-//
-//}
-
-
 void ScanlineRenderer::_renderWithHierarchicalZBuffer(
 	const Camera& camera, 
 	const glm::vec3& objectColor,
@@ -426,12 +436,15 @@ void ScanlineRenderer::_renderWithHierarchicalZBuffer(
 	glm::mat4x4 view = camera.getViewMatrix();
 	glm::mat4x4 projection = camera.getProjectionMatrix();
 
+	int cullCount = 0;
 	for (int i = 0; i < _triangles.size(); ++i) {
-		//if (i == 3054 / 3) {
-			_quadTree->handleTriangle(_triangles[i], 
-				model, view, projection, objectColor, lightColor, lightDirection);
-		//}
+		if (_quadTree->handleTriangle(_triangles[i],
+			model, view, projection, objectColor, lightColor, lightDirection)) {
+			++cullCount;
+		}
 	}
+
+	std::cout << 1.0f * cullCount / _triangles.size() << std::endl;
 }
 
 
@@ -443,6 +456,9 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 	glm::mat4x4 model = glm::mat4x4(1.0f);
 	glm::mat4x4 view = camera.getViewMatrix();
 	glm::mat4x4 projection = camera.getProjectionMatrix();
+	glm::mat4x4 vp = projection * view;
+
+	int n = 0;
 
 	std::stack<ptrOctreeZNode> stackNode;
 	stackNode.push(new OctreeZNode{ 1.0f, _octree->getRoot() });
@@ -457,7 +473,7 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 		glm::vec3 v = temp->node->box->center +
 			glm::vec3(1.0f, 0.0f, 0.0f) * temp->node->box->halfSide * 1.73206f;
 		glm::vec4 u = projection * view * glm::vec4(v, 1.0f);
-		screenRadius = int((u.x / u.w + 1.0f) * _windowWidth / 2);
+		screenRadius = int((u.x / u.w + 1.0f) * _windowWidth / 2) - screenX;
 
 		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
 		if (node->z > temp->node->box->center.z + temp->node->box->halfSide * 1.73206f) {
@@ -465,6 +481,8 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 				_quadTree->handleTriangle(*iter, model, view, projection, 
 					objectColor, lightColor, lightDirection);
 			}
+		} else {
+			n += temp->node->objects.size();
 		}
 
 		OctreeZNode* child[8];
@@ -486,6 +504,8 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 			stackNode.push(child[--count]);
 		}
 	}
+
+	std::cout << 1.0 * n / _triangles.size() << std::endl;
 }
 
 

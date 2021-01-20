@@ -68,9 +68,14 @@ uint32_t Model::getFaceCount() const {
  * @param vertex indices of the triangle face as output
  */
 void Model::getFaces(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) const {
+	int offset = vertices.size();
 	for (const auto& mesh : _meshes) {
 		vertices.insert(vertices.end(), mesh.vertices.begin(), mesh.vertices.end());
-		indices.insert(indices.end(), mesh.indices.begin(), mesh.indices.end());
+		for (int index : mesh.indices) {
+			indices.push_back(index + offset);
+		}
+
+		offset += mesh.vertices.size();
 	}
 }
 
