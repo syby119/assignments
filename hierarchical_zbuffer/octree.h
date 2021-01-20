@@ -24,6 +24,7 @@ public:
 };
 
 struct OctreeZNode {
+	bool isLeaf;
 	float z = -1.0f;
 	OctreeNode* node = nullptr;
 };

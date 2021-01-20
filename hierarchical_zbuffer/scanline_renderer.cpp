@@ -9,9 +9,9 @@ ScanlineRenderer::ScanlineRenderer(
 	std::vector<Triangle>& triangles,
 	const glm::vec4& clearColor)
 	: _framebuffer(framebuffer),
-	  _windowWidth(windowWidth), _windowHeight(windowHeight),
-	  _clearColor(clearColor), 
-		_triangles(triangles) {
+	_windowWidth(windowWidth), _windowHeight(windowHeight),
+	_clearColor(clearColor),
+	_triangles(triangles) {
 	_classifiedPolygonTable.resize(windowHeight);
 	_classifiedEdgeTable.resize(windowHeight);
 	_zbuffer = new Zbuffer(windowWidth, windowHeight);
@@ -34,19 +34,23 @@ void ScanlineRenderer::render(
 		_clearRenderData();
 		_assembleRenderData(camera, models, objectColor, lightColor, lightDirection);
 		_scan(framebuffer);
-	} else { if (_renderMode == RenderMode::ZBuffer) {
-		_quadTree->activateHierachical(false);
-		_quadTree->clear();
-		_renderWithHierarchicalZBuffer(camera, objectColor, lightColor, lightDirection);
-	} else if (_renderMode == RenderMode::HierarchicalZBuffer) {
-		_quadTree->activateHierachical(true);
-		_quadTree->clear();
-		_renderWithHierarchicalZBuffer(camera, objectColor, lightColor, lightDirection);
-	} else {
-		_quadTree->activateHierachical(true);
-		_quadTree->clear();
-		_renderWithOctreeHierarchicalZBuffer(camera, objectColor, lightColor, lightDirection);
 	}
+	else {
+		if (_renderMode == RenderMode::ZBuffer) {
+			_quadTree->activateHierachical(false);
+			_quadTree->clear();
+			_renderWithHierarchicalZBuffer(camera, objectColor, lightColor, lightDirection);
+		}
+		else if (_renderMode == RenderMode::HierarchicalZBuffer) {
+			_quadTree->activateHierachical(true);
+			_quadTree->clear();
+			_renderWithHierarchicalZBuffer(camera, objectColor, lightColor, lightDirection);
+		}
+		else {
+			_quadTree->activateHierachical(true);
+			_quadTree->clear();
+			_renderWithOctreeHierarchicalZBuffer(camera, objectColor, lightColor, lightDirection);
+		}
 	}
 
 	framebuffer.render();
@@ -156,7 +160,8 @@ void ScanlineRenderer::_assembleRenderData(
 			else if (v[0].w > 0 && v[1].w > 0 && v[2].w > 0) {
 				if (v[0].w < v[0].z && v[1].w < v[1].z && v[2].w < v[2].z) {
 					continue;
-				} else if (-v[0].w > v[0].z && -v[1].w > v[1].z && -v[2].w > v[2].z) {
+				}
+				else if (-v[0].w > v[0].z && -v[1].w > v[1].z && -v[2].w > v[2].z) {
 					continue;
 				}
 			}
@@ -169,9 +174,9 @@ void ScanlineRenderer::_assembleRenderData(
 			double screenZ[3];
 
 			for (int j = 0; j < 3; ++j) {
-				screenX[j] = _windowWidth *  (points[j].x / points[j].w + 1.0f) / 2.0f;
+				screenX[j] = _windowWidth * (points[j].x / points[j].w + 1.0f) / 2.0f;
 				screenY[j] = _windowHeight * (points[j].y / points[j].w + 1.0f) / 2.0f,
-				screenZ[j] = points[j].z / points[j].w;
+					screenZ[j] = points[j].z / points[j].w;
 			}
 
 			//if (i == 3252 || i == 58521) {
@@ -196,8 +201,8 @@ void ScanlineRenderer::_assembleRenderData(
 				polygon.a += screenY[j] * (screenZ[(j + 1) % 3] - screenZ[(j + 2) % 3]);
 				polygon.b += screenZ[j] * (screenX[(j + 1) % 3] - screenX[(j + 2) % 3]);
 				polygon.c += screenX[j] * (screenY[(j + 1) % 3] - screenY[(j + 2) % 3]);
-				polygon.d -= screenX[j] * (screenY[(j + 1) % 3] * screenZ[(j + 2) % 3] - 
-					                       screenY[(j + 2) % 3] * screenZ[(j + 1) % 3]);
+				polygon.d -= screenX[j] * (screenY[(j + 1) % 3] * screenZ[(j + 2) % 3] -
+					screenY[(j + 2) % 3] * screenZ[(j + 1) % 3]);
 			}
 
 			// id of the triangle
@@ -214,7 +219,8 @@ void ScanlineRenderer::_assembleRenderData(
 			minY = std::max(0, minY);
 			if (maxY < 0) {
 				continue;
-			} else if (maxY >= _windowHeight) {
+			}
+			else if (maxY >= _windowHeight) {
 				maxY = _windowHeight - 1;
 			}
 
@@ -253,7 +259,8 @@ void ScanlineRenderer::_assembleRenderData(
 					if (screenX[m] > screenX[n]) {
 						std::swap(m, n);
 					}
-				} else {
+				}
+				else {
 					if (screenY[m] > screenY[n]) {
 						std::swap(m, n);
 					}
@@ -264,9 +271,9 @@ void ScanlineRenderer::_assembleRenderData(
 				}
 
 				edge.x = screenX[n];
-				edge.dx =  1.0f * (screenX[m] - screenX[n]) / (screenY[n] - screenY[m] + 0.000001);
+				edge.dx = 1.0f * (screenX[m] - screenX[n]) / (screenY[n] - screenY[m] + 0.000001);
 				edge.dy = std::clamp(screenY[n], 0, _windowHeight - 1) -
-						  std::clamp(screenY[m], 0, _windowHeight - 1);
+					std::clamp(screenY[m], 0, _windowHeight - 1);
 				edge.id = pid;
 
 				//if (edge.id == 3252 || edge.id == 58521) {
@@ -347,7 +354,7 @@ void ScanlineRenderer::_scan(Framebuffer& framebuffer) {
 					if (_zbuffer->testAndSet(x, y, zx)) {
 						framebuffer.setPixel(x, y, pPolygon->color);
 					}
-				} 
+				}
 				zx += edgePairIt->dzx;
 			}
 
@@ -427,7 +434,7 @@ Polygon* ScanlineRenderer::_findActivePolygon(int id) {
 
 
 void ScanlineRenderer::_renderWithHierarchicalZBuffer(
-	const Camera& camera, 
+	const Camera& camera,
 	const glm::vec3& objectColor,
 	const glm::vec3& lightColor,
 	const glm::vec3& lightDirection) {
@@ -448,7 +455,7 @@ void ScanlineRenderer::_renderWithHierarchicalZBuffer(
 
 
 void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
-	const Camera& camera, 
+	const Camera& camera,
 	const glm::vec3& objectColor,
 	const glm::vec3& lightColor,
 	const glm::vec3& lightDirection) {
@@ -457,42 +464,58 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 	glm::mat4x4 projection = camera.getProjectionMatrix();
 	glm::mat4x4 vp = projection * view;
 
-	int n = 0;
+	int octCull = 0;
+	int quadCull = 0;
 
 	std::stack<ptrOctreeZNode> stackNode;
-	stackNode.push(new OctreeZNode{ 1.0f, _octree->getRoot() });
+	bool flag = _octree->getRoot()->childExists > 0 ? false : true;
+	glm::vec4 rootCenter = projection * view * glm::vec4{ _octree->getRoot()->box->center, 1.0f };
+
+	stackNode.push(new OctreeZNode{ flag, rootCenter.z / rootCenter.w, _octree->getRoot() });
 	while (!stackNode.empty()) {
 		ptrOctreeZNode temp = stackNode.top();
 		stackNode.pop();
 
-		int screenX, screenY, screenRadius;
-		glm::vec4 vCenter = projection * view * glm::vec4{ temp->node->box->center, 1.0f };
-		screenX = int((vCenter.x / vCenter.w + 1.0f) * _windowWidth / 2);
-		screenY = int((vCenter.y / vCenter.w + 1.0f) * _windowHeight / 2);
-		glm::vec3 v = temp->node->box->center +
-			glm::vec3(1.0f, 0.0f, 0.0f) * temp->node->box->halfSide * 1.73206f;
-		glm::vec4 u = projection * view * glm::vec4(v, 1.0f);
-		screenRadius = int((u.x / u.w + 1.0f) * _windowWidth / 2) - screenX;
-
-		QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
-		if (node->z > temp->node->box->center.z + temp->node->box->halfSide * 1.73206f) {
-			for (auto iter : temp->node->objects) {
-				_quadTree->handleTriangle(*iter, model, view, projection, 
-					objectColor, lightColor, lightDirection);
-			}
-		} else {
-			n += temp->node->objects.size();
-		}
-
-		OctreeZNode* child[8];
+		OctreeZNode* child[9];
 		int count = 0;
-		for (int i = 0; i < 8; ++i) {
-			if (temp->node->childExists & (1 << i)) {
-				uint32_t locCodeChild = (temp->node->locCode << 3) | i;
-				OctreeNode* childNode = _octree->lookupNode(locCodeChild);
-				glm::vec4 vCenter = projection * view * glm::vec4(childNode->box->center, 1.0f);
-				child[count++] = new OctreeZNode{ vCenter.z, childNode };
+
+		if (temp->isLeaf) {
+			int screenX, screenY, screenZ, screenRadius;
+			glm::vec4 vCenter = projection * view * glm::vec4{ temp->node->box->center, 1.0f };
+			screenX = int((vCenter.x / vCenter.w + 1.0f) * _windowWidth / 2);
+			screenY = int((vCenter.y / vCenter.w + 1.0f) * _windowHeight / 2);
+
+			glm::vec3 v = temp->node->box->center +
+				glm::vec3(1.0f, 0.0f, 0.0f) * temp->node->box->halfSide * 1.73206f;
+			glm::vec4 u = projection * view * glm::vec4(v, 1.0f);
+			screenRadius = int((u.x / u.w + 1.0f) * _windowWidth / 2) - screenX;
+			v = temp->node->box->center + glm::vec3(0.0f, 0.0f, 1.0f) * temp->node->box->halfSide * 1.73206f;
+			u = projection * view * glm::vec4(v, 1.0f);
+			screenZ = u.z / u.w;
+
+			QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
+			if (node->z > screenZ) {
+				for (auto iter : temp->node->objects) {
+					quadCull += _quadTree->handleTriangle(*iter, model, view, projection,
+						objectColor, lightColor, lightDirection);
+				}
 			}
+			else {
+				octCull += temp->node->objects.size();
+			}
+		}
+		else {
+			for (int i = 0; i < 8; ++i) {
+				if (temp->node->childExists & (1 << i)) {
+					uint32_t locCodeChild = (temp->node->locCode << 3) | i;
+					OctreeNode* childNode = _octree->lookupNode(locCodeChild);
+					glm::vec4 vCenter = projection * view * glm::vec4(childNode->box->center, 1.0f);
+					bool flag = childNode->childExists > 0 ? false : true;
+					child[count++] = new OctreeZNode{ flag, vCenter.z / vCenter.w, childNode };
+				}
+			}
+			temp->isLeaf = true;
+			child[count++] = temp;
 		}
 
 		std::sort(child, child + count, [](const ptrOctreeZNode& a, const ptrOctreeZNode& b) {
@@ -504,12 +527,13 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 		}
 	}
 
-	std::cout << 1.0 * n / _triangles.size() << std::endl;
+	std::cout << "octCull: " << 1.0 * octCull / _triangles.size() << "\t";
+	std::cout << "quadCull: " << 1.0 * quadCull / _triangles.size() << std::endl;
 }
 
 
 void ScanlineRenderer::_print(const Polygon& polygon) {
-	std::cout << "Polygon.a, b, c, d [" 
+	std::cout << "Polygon.a, b, c, d ["
 		<< polygon.a << "," << polygon.b << "," << polygon.c << "," << polygon.d << "]\n";
 	std::cout << "Polygon.id " << polygon.id << "\n";
 	std::cout << "Polygon.dy " << polygon.dy << "\n";

@@ -163,7 +163,7 @@ QuadTreeNode* QuadTree::searchNode(int screenX, int screenY, int screenRadius) {
 	
 	while (true) {
 		if ((screenY - node->box->centerY) * (screenY - node->box->centerY) +
-			(screenX - node->box->centerX) * (screenX - node->box->centerX) < screenRadius) {
+			(screenX - node->box->centerX) * (screenX - node->box->centerX) < screenRadius * screenRadius) {
 			break;
 		} else {
 			uint8_t quadCode = 0;
