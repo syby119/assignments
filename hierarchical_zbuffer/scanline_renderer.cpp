@@ -415,7 +415,6 @@ void ScanlineRenderer::_scan(Framebuffer& framebuffer) {
 }
 
 
-
 Polygon* ScanlineRenderer::_findActivePolygon(int id) {
 	for (auto& polygon : _activePolygonTable) {
 		if (polygon.id == id) {
