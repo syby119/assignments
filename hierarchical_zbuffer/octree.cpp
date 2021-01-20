@@ -51,11 +51,8 @@ void Octree::splitNode(OctreeNode* node, int depth) {
 		}
 		if (locCodeTemp[0] == locCodeTemp[1] &&
 			locCodeTemp[1] == locCodeTemp[2]) {
-			// 构建新的子树node
+			// new a child
 			const uint32_t locCodeChild = (node->locCode << 3) | locCodeTemp[0];
-			//std::cout << "locCodeChild: " << locCodeChild << std::endl;
-			//std::cout << "Depth child: " << getNodeTreeDepth(&nodes[locCodeChild]) << std::endl;
-			// 构造一个新节点
 			if (!(node->childExists&(1 << locCodeTemp[0]))) {
 				node->childExists |= 1 << (locCodeTemp[0]);
 				auto childNode = new OctreeNode(locCodeChild);
@@ -67,18 +64,17 @@ void Octree::splitNode(OctreeNode* node, int depth) {
 				childNode->box = new OctBoundingBox{childCenter, halfHalfSide };
 				nodes[childNode->locCode] = *childNode;
 			}
-			// 赋予三角形
+			// assign the triangle
 			auto *child = lookupNode(locCodeChild);
 			child->objects.insert(*iter);
 			node->objects.erase(iter++);
-			// move triangle
 		}
 		else {
 			++iter;
 		}
 	}
 
-	// 对子节点迭代
+	// iterate in the subtree
 	for (int i = 0; i < 8; ++i) {
 		if (node->childExists&(1 << i)) {
 			const uint32_t locCodeChild = (node->locCode << 3) | i;

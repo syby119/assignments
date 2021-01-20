@@ -26,7 +26,6 @@ struct QuadTreeNode {
 };
 
 
-
 class QuadTree {
 public:
 	/*
@@ -81,8 +80,7 @@ public:
 	 */
 	size_t getDepth(const QuadTreeNode* node) const;
 
-
-	bool testAndSet();
+	void activateHierachical(bool active);
 
 private:
 	QuadTreeNode* _root = nullptr;
@@ -96,6 +94,8 @@ private:
 	std::unordered_map<uint32_t, QuadTreeNode> _nodes;
 	
 	Framebuffer* _framebuffer = nullptr;
+
+	bool _useHierarchical = true;
 
 	struct Side {
 		int yMin;

@@ -45,11 +45,13 @@ QuadTree::~QuadTree() {
 void QuadTree::clear() {
 	const int resolution = _windowWidth * _windowHeight;
 	for (int i = 0; i < resolution; ++i) {
-		_zbuffer[i] = 5.0f;
+		_zbuffer[i] = std::numeric_limits<float>::max();
 	}
 
-	for (auto node : _nodes) {
-		node.second.z = 5.0f;
+	if (_useHierarchical) {
+		for (auto node : _nodes) {
+			node.second.z = std::numeric_limits<float>::max();
+		}
 	}
 }
 
@@ -60,7 +62,7 @@ void QuadTree::_construct() {
 	_root->box = new QuadBoundingBox{ 
 		0, _windowWidth, 0, _windowHeight, (_windowWidth + 1) / 2, (_windowHeight + 1) / 2 };
 	//_root->z = -10000.0f;
-	_root->z = 5.0f;
+	_root->z = std::numeric_limits<float>::max();
 	_splitNode(_root);
 }
 
@@ -209,6 +211,12 @@ bool QuadTree::test(int* screenX, int* screenY, float z) {
 }
 
 
+void QuadTree::activateHierachical(bool active) {
+	_useHierarchical = active;
+}
+
+
+
 /*
  * @brief draw a triangle with scan line
  */
@@ -225,7 +233,15 @@ void QuadTree::handleTriangle(
 	
 	float minZ = _processTriangle(tri, model, view, projection, screenX, screenY, screenZ);
 	
-	if (test(screenX, screenY, minZ)) {
+	if (!_useHierarchical) {
+		const glm::mat3x3 normalMat = glm::mat3x3(glm::transpose(inverse(model)));
+		glm::vec3 ambient = 0.1f * lightColor;
+		glm::vec3 norm = glm::normalize(normalMat * tri.v[0].normal);
+		glm::vec3 diffuse = std::max(glm::dot(lightDirection, norm), 0.0f) * lightColor;
+		glm::vec3 color = (ambient + diffuse) * objectColor;
+		
+		_renderTriangle(screenX, screenY, screenZ, color);
+	} else if (test(screenX, screenY, minZ)) {
 		const glm::mat3x3 normalMat = glm::mat3x3(glm::transpose(inverse(model)));
 		glm::vec3 ambient = 0.1f * lightColor;
 		glm::vec3 norm = glm::normalize(normalMat * tri.v[0].normal);
@@ -390,7 +406,9 @@ void QuadTree::_fillLine(ScanLine scanline, const glm::vec3& color) {
 
 			QuadTreeNode* node = &_nodes[_indexNodeBuffer[index]];
 			node->z = z;
-			update(node);
+			if (_useHierarchical == true) {
+				update(node);
+			}
 		}
 		z += scanline.dz;
 		++index;

@@ -56,11 +56,10 @@ struct ActiveEdgePair {
 class ScanlineRenderer {
 public:
 	enum class RenderMode {
+		Global,
 		ZBuffer,
 		HierarchicalZBuffer,
 		OctreeHierarchicalZBuffer,
-		HierarchicalZBufferLocal,
-		OctreeHierarchicalZBufferLocal,
 	};
 
 	ScanlineRenderer(Framebuffer& framebuffer,
@@ -138,7 +137,11 @@ private:
 
 	Polygon* _findActivePolygon(int id);
 
-	void _renderWithScanLineZBuffer();
+	void _renderWithZBuffer(
+		const Camera& camera,
+		const glm::vec3& objectColor,
+		const glm::vec3& lightDirection,
+		const glm::vec3& lightColor);
 
 	void _renderWithHierarchicalZBuffer(
 		const Camera& camera,

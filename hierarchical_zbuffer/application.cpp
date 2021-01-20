@@ -61,8 +61,6 @@ Application::Application() {
 	_scanlineRenderer = new ScanlineRenderer(*_framebuffer, _windowWidth, _windowHeight, _triangles, _clearColor);
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
-
-	std::cout << "Gpu renderer" << std::endl;
 }
 
 
@@ -227,23 +225,18 @@ void Application::_handleInput() {
 	
 	if (_keyboardInput.keyPressed[GLFW_KEY_0]) {
 		_rendererType = RendererType::GpuRenderer;
-
-		std::cout << "gpu renderer" << std::endl;
 	} else if (_keyboardInput.keyPressed[GLFW_KEY_1]) {
 		_rendererType = RendererType::ScanLineRenderer;
-		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::ZBuffer);
-
-		std::cout << "scanline renderer with zbuffer" << std::endl;
+		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::Global);
 	} else if (_keyboardInput.keyPressed[GLFW_KEY_2]) {
 		_rendererType = RendererType::ScanLineRenderer;
-		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::HierarchicalZBuffer);
-
-		std::cout << "scanline renderer with hierarchical zbuffer" << std::endl;
+		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::ZBuffer);
 	} else if (_keyboardInput.keyPressed[GLFW_KEY_3]) {
 		_rendererType = RendererType::ScanLineRenderer;
+		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::HierarchicalZBuffer);
+	} else if (_keyboardInput.keyPressed[GLFW_KEY_4]) {
+		_rendererType = RendererType::ScanLineRenderer;
 		_scanlineRenderer->setRenderMode(ScanlineRenderer::RenderMode::OctreeHierarchicalZBuffer);
-
-		std::cout << "scanline renderer with hierarchical zbuffer and octree" << std::endl;
 	}
 
 	_mouseInput.move.xOld = _mouseInput.move.xCurrent;
@@ -272,14 +265,17 @@ void Application::_renderFrame() {
 		_windowTitle = "gpu renderer";
 	} else {
 		switch (_scanlineRenderer->getRenderMode()) {
+		case ScanlineRenderer::RenderMode::Global:
+			_windowTitle = "scanline renderer global with zbuffer";
+			break;
 		case ScanlineRenderer::RenderMode::ZBuffer:
-			_windowTitle = "scanline renderer with zbuffer";
+			_windowTitle = "scanline renderer local with zbuffer";
 			break;
 		case ScanlineRenderer::RenderMode::HierarchicalZBuffer:
-			_windowTitle = "scanline renderer with hierarchical zbuffer";
+			_windowTitle = "scanline renderer local with hierarchical zbuffer";
 			break;
 		case ScanlineRenderer::RenderMode::OctreeHierarchicalZBuffer:
-			_windowTitle = "scanline renderer with octree and hierarchical zBuffer";
+			_windowTitle = "scanline renderer local with octree and hierarchical zBuffer";
 			break;
 		}
 	}
