@@ -16,7 +16,7 @@ ScanlineRenderer::ScanlineRenderer(
 	_classifiedEdgeTable.resize(windowHeight);
 	_zbuffer = new Zbuffer(windowWidth, windowHeight);
 	_quadTree = new QuadTree(windowWidth, windowHeight, &_framebuffer);
-	_octree = new Octree(&triangles, 10);
+	_octree = new Octree(&triangles, 20);
 }
 
 
@@ -468,63 +468,67 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 	int octCull = 0;
 	int quadCull = 0;
 
-	std::stack<ptrOctreeZNode> stackNode;
+	std::stack<OctreeZNode> stackNode;
 	bool flag = _octree->getRoot()->childExists > 0 ? false : true;
-	glm::vec4 rootCenter = projection * view * glm::vec4{ _octree->getRoot()->box->center, 1.0f };
+	glm::vec4 rootCenter = vp * glm::vec4{ _octree->getRoot()->box->center, 1.0f };
 
-	stackNode.push(new OctreeZNode{ flag, rootCenter.z / rootCenter.w, _octree->getRoot() });
+	stackNode.push(OctreeZNode{ flag, rootCenter.z / rootCenter.w, _octree->getRoot() });
 	while (!stackNode.empty()) {
-		ptrOctreeZNode temp = stackNode.top();
+		OctreeZNode temp = stackNode.top();
 		stackNode.pop();
 
-		OctreeZNode* child[9];
+		std::vector<OctreeZNode> children;
 		int count = 0;
 
-		if (temp->isLeaf) {
-			int screenX, screenY, screenZ, screenRadius;
-			glm::vec4 vCenter = projection * view * glm::vec4{ temp->node->box->center, 1.0f };
+		if (temp.isLeaf) {
+			int screenX, screenY, screenRadius;
+			float screenZ;
+			glm::vec4 vCenter = vp * glm::vec4{ temp.node->box->center, 1.0f };
 			screenX = int((vCenter.x / vCenter.w + 1.0f) * _windowWidth / 2);
 			screenY = int((vCenter.y / vCenter.w + 1.0f) * _windowHeight / 2);
 
-			glm::vec3 v = temp->node->box->center +
-				glm::vec3(1.0f, 0.0f, 0.0f) * temp->node->box->halfSide * 1.73206f;
-			glm::vec4 u = projection * view * glm::vec4(v, 1.0f);
+			glm::vec3 v = temp.node->box->center +
+				glm::vec3(1.0f, 0.0f, 0.0f) * temp.node->box->halfSide * 1.73206f;
+			glm::vec4 u = vp * glm::vec4(v, 1.0f);
 			screenRadius = int((u.x / u.w + 1.0f) * _windowWidth / 2) - screenX;
-			v = temp->node->box->center + glm::vec3(0.0f, 0.0f, 1.0f) * temp->node->box->halfSide * 1.73206f;
+			if (screenRadius == 0)
+				std::cout << "screenRadius is 0" << std::endl;
+			v = temp.node->box->center + glm::vec3(0.0f, 0.0f, 1.0f) * temp.node->box->halfSide * 1.73206f;
 			u = projection * view * glm::vec4(v, 1.0f);
 			screenZ = u.z / u.w;
 
 			QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
 			if (node->z > screenZ) {
-				for (auto iter : temp->node->objects) {
+				for (auto iter : temp.node->objects) {
 					quadCull += _quadTree->handleTriangle(*iter, model, view, projection,
 						objectColor, lightColor, lightDirection);
 				}
 			}
 			else {
-				octCull += temp->node->objects.size();
+				octCull += temp.node->objects.size();
 			}
 		}
 		else {
 			for (int i = 0; i < 8; ++i) {
-				if (temp->node->childExists & (1 << i)) {
-					uint32_t locCodeChild = (temp->node->locCode << 3) | i;
+				if (temp.node->childExists & (1 << i)) {
+					uint32_t locCodeChild = (temp.node->locCode << 3) | i;
 					OctreeNode* childNode = _octree->lookupNode(locCodeChild);
-					glm::vec4 vCenter = projection * view * glm::vec4(childNode->box->center, 1.0f);
+					glm::vec4 vCenter = vp * glm::vec4(childNode->box->center, 1.0f);
 					bool flag = childNode->childExists > 0 ? false : true;
-					child[count++] = new OctreeZNode{ flag, vCenter.z / vCenter.w, childNode };
+					children.push_back(OctreeZNode{ flag, vCenter.z / vCenter.w, childNode });
 				}
 			}
-			temp->isLeaf = true;
-			child[count++] = temp;
+			
+			std::sort(children.begin(), children.end(), [](const OctreeZNode& a, const OctreeZNode& b) {
+				return a.z < b.z;
+			});
+
+			temp.isLeaf = true;
+			children.push_back(temp);
 		}
 
-		std::sort(child, child + count, [](const ptrOctreeZNode& a, const ptrOctreeZNode& b) {
-			return a->z < b->z;
-		});
-
-		while (count > 0) {
-			stackNode.push(child[--count]);
+		for (auto it = children.rbegin(); it != children.rend(); ++it) {
+			stackNode.push(*it);
 		}
 	}
 

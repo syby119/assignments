@@ -162,10 +162,15 @@ QuadTreeNode* QuadTree::searchNode(int screenX, int screenY, int screenRadius) {
 	QuadTreeNode* node = _root;
 	
 	while (true) {
-		if ((screenY - node->box->centerY) * (screenY - node->box->centerY) +
+		/*if ((screenY - node->box->centerY) * (screenY - node->box->centerY) +
 			(screenX - node->box->centerX) * (screenX - node->box->centerX) < screenRadius * screenRadius) {
 			break;
-		} else {
+		}*/ 
+		if ((screenY - node->box->centerY) * (screenY - node->box->centerY) < screenRadius * screenRadius || 
+			(screenX - node->box->centerX) * (screenX - node->box->centerX) < screenRadius * screenRadius) {
+			break;
+		}
+		else {
 			uint8_t quadCode = 0;
 			quadCode |= screenY < node->box->centerY ? 0 : 1;
 			quadCode <<= 1;

@@ -61,7 +61,7 @@ private:
 
 	/* model */
 	std::vector<Model> _models;
-	std::vector<std::string> _modelFilepaths{ "../resources/bunny.obj", "../resources/halfball.obj" };
+	std::vector<std::string> _modelFilepaths{  "../resources/halfball.obj" };
 
 	/* triangle data: local space */
 	std::vector<Triangle> _triangles;
