@@ -61,7 +61,6 @@ void QuadTree::clear() {
 void QuadTree::_construct() {
 	_root->box = new QuadBoundingBox{ 
 		0, _windowWidth, 0, _windowHeight, (_windowWidth + 1) / 2, (_windowHeight + 1) / 2 };
-	//_root->z = -10000.0f;
 	_root->z = std::numeric_limits<float>::max();
 	_splitNode(_root);
 }

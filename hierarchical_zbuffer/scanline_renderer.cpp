@@ -238,11 +238,6 @@ void ScanlineRenderer::_assembleRenderData(
 			//	polygon.color = glm::vec3(1, 0, 0);
 			//}
 
-			//if (i == 3054) {
-			//	Object3D::print(polygon.color); std::cout << std::endl;
-			//	polygon.color = glm::vec3(1.0f, 0.0f, 0.0f);
-			//}
-
 			_classifiedPolygonTable[maxY].push_back(polygon);
 
 			//if (polygon.id == 3252 || polygon.id == 58521) {
@@ -442,15 +437,11 @@ void ScanlineRenderer::_renderWithHierarchicalZBuffer(
 	glm::mat4x4 view = camera.getViewMatrix();
 	glm::mat4x4 projection = camera.getProjectionMatrix();
 
-	int cullCount = 0;
 	for (int i = 0; i < _triangles.size(); ++i) {
 		if (_quadTree->handleTriangle(_triangles[i],
 			model, view, projection, objectColor, lightColor, lightDirection)) {
-			++cullCount;
 		}
 	}
-
-	std::cout << 1.0f * cullCount / _triangles.size() << std::endl;
 }
 
 
@@ -459,76 +450,66 @@ void ScanlineRenderer::_renderWithOctreeHierarchicalZBuffer(
 	const glm::vec3& objectColor,
 	const glm::vec3& lightColor,
 	const glm::vec3& lightDirection) {
-	glm::mat4x4 model = glm::mat4x4(1.0f);
-	glm::mat4x4 view = camera.getViewMatrix();
-	glm::mat4x4 projection = camera.getProjectionMatrix();
-	glm::mat4x4 vp = projection * view;
+	const glm::mat4x4 model = glm::mat4x4(1.0f);
+	const glm::mat4x4 view = camera.getViewMatrix();
+	const glm::mat4x4 projection = camera.getProjectionMatrix();
+	const glm::mat4x4 vp = projection * view;
 
-	int octCull = 0;
-	int quadCull = 0;
-
-	std::stack<ptrOctreeZNode> stackNode;
+	std::stack<OctreeZNode> stack;
 	bool flag = _octree->getRoot()->childExists > 0 ? false : true;
-	glm::vec4 rootCenter = projection * view * glm::vec4{ _octree->getRoot()->box->center, 1.0f };
+	glm::vec4 rootCenter = vp * glm::vec4{ _octree->getRoot()->box->center, 1.0f };
 
-	stackNode.push(new OctreeZNode{ flag, rootCenter.z / rootCenter.w, _octree->getRoot() });
-	while (!stackNode.empty()) {
-		ptrOctreeZNode temp = stackNode.top();
-		stackNode.pop();
+	stack.push(OctreeZNode{ flag, rootCenter.z / rootCenter.w, _octree->getRoot() });
+	while (!stack.empty()) {
+		OctreeZNode parent = stack.top();
+		stack.pop();
 
-		OctreeZNode* child[9];
-		int count = 0;
+		std::vector<OctreeZNode> children;
 
-		if (temp->isLeaf) {
+		if (parent.isLeaf) {
 			int screenX, screenY, screenZ, screenRadius;
-			glm::vec4 vCenter = projection * view * glm::vec4{ temp->node->box->center, 1.0f };
+			glm::vec4 vCenter = vp * glm::vec4{ parent.node->box->center, 1.0f };
 			screenX = int((vCenter.x / vCenter.w + 1.0f) * _windowWidth / 2);
 			screenY = int((vCenter.y / vCenter.w + 1.0f) * _windowHeight / 2);
 
-			glm::vec3 v = temp->node->box->center +
-				glm::vec3(1.0f, 0.0f, 0.0f) * temp->node->box->halfSide * 1.73206f;
-			glm::vec4 u = projection * view * glm::vec4(v, 1.0f);
+			glm::vec3 v = parent.node->box->center +
+				glm::vec3(1.0f, 0.0f, 0.0f) * parent.node->box->halfSide * 1.73206f;
+			glm::vec4 u = vp * glm::vec4(v, 1.0f);
 			screenRadius = int((u.x / u.w + 1.0f) * _windowWidth / 2) - screenX;
-			v = temp->node->box->center + glm::vec3(0.0f, 0.0f, 1.0f) * temp->node->box->halfSide * 1.73206f;
-			u = projection * view * glm::vec4(v, 1.0f);
+			v = parent.node->box->center + glm::vec3(0.0f, 0.0f, 1.0f) * parent.node->box->halfSide * 1.73206f;
+			u = vp * glm::vec4(v, 1.0f);
 			screenZ = u.z / u.w;
 
 			QuadTreeNode* node = _quadTree->searchNode(screenX, screenY, screenRadius);
 			if (node->z > screenZ) {
-				for (auto iter : temp->node->objects) {
-					quadCull += _quadTree->handleTriangle(*iter, model, view, projection,
+				for (auto iter : parent.node->objects) {
+					_quadTree->handleTriangle(*iter, model, view, projection,
 						objectColor, lightColor, lightDirection);
 				}
-			}
-			else {
-				octCull += temp->node->objects.size();
 			}
 		}
 		else {
 			for (int i = 0; i < 8; ++i) {
-				if (temp->node->childExists & (1 << i)) {
-					uint32_t locCodeChild = (temp->node->locCode << 3) | i;
+				if (parent.node->childExists & (1 << i)) {
+					uint32_t locCodeChild = (parent.node->locCode << 3) | i;
 					OctreeNode* childNode = _octree->lookupNode(locCodeChild);
-					glm::vec4 vCenter = projection * view * glm::vec4(childNode->box->center, 1.0f);
+					glm::vec4 vCenter = vp * glm::vec4(childNode->box->center, 1.0f);
 					bool flag = childNode->childExists > 0 ? false : true;
-					child[count++] = new OctreeZNode{ flag, vCenter.z / vCenter.w, childNode };
+					children.push_back(OctreeZNode{ flag, vCenter.z / vCenter.w, childNode });
 				}
 			}
-			temp->isLeaf = true;
-			child[count++] = temp;
+			parent.isLeaf = true;
+			children.push_back(parent);
 		}
 
-		std::sort(child, child + count, [](const ptrOctreeZNode& a, const ptrOctreeZNode& b) {
-			return a->z < b->z;
+		std::sort(children.begin(), children.end(), [](const OctreeZNode& a, const OctreeZNode& b) {
+			return a.z < b.z;
 		});
 
-		while (count > 0) {
-			stackNode.push(child[--count]);
+		for (auto it = children.rbegin(); it != children.rend(); ++it) {
+			stack.push(*it);
 		}
 	}
-
-	std::cout << "octCull: " << 1.0 * octCull / _triangles.size() << "\t";
-	std::cout << "quadCull: " << 1.0 * quadCull / _triangles.size() << std::endl;
 }
 
 
