@@ -36,18 +36,18 @@ void Octree::buildOctree() {
 
 void Octree::splitNode(OctreeNode* node, int depth) {
 	//std::cout << "call split node" << std::endl;
-	if (node->objects.size() < threshold || depth >= 10)
+	if (node->objects.size() < threshold || depth >= 8)
 		return;
 	glm::vec3 center = node->box->center;
 	float halfSide = node->box->halfSide;
 	for (auto iter = node->objects.begin(); iter != node->objects.end(); ) {
 		uint32_t locCodeTemp[3] = {0, 0, 0};
 		for (int i = 0; i < 3; ++i) {
-			locCodeTemp[i] |= (*iter)->v[i].position[0] > center[0] ? 1 : 0;
+			locCodeTemp[i] |= (*iter)->v[i].position.x > center.x ? 1 : 0;
 			locCodeTemp[i] <<= 1;
-			locCodeTemp[i] |= (*iter)->v[i].position[1] > center[1] ? 1 : 0;
+			locCodeTemp[i] |= (*iter)->v[i].position.y > center.y ? 1 : 0;
 			locCodeTemp[i] <<= 1;
-			locCodeTemp[i] |= (*iter)->v[i].position[2] > center[2] ? 1 : 0;
+			locCodeTemp[i] |= (*iter)->v[i].position.z > center.z ? 1 : 0;
 		}
 		if (locCodeTemp[0] == locCodeTemp[1] &&
 			locCodeTemp[1] == locCodeTemp[2]) {

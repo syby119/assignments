@@ -16,7 +16,7 @@ ScanlineRenderer::ScanlineRenderer(
 	_classifiedEdgeTable.resize(windowHeight);
 	_zbuffer = new Zbuffer(windowWidth, windowHeight);
 	_quadTree = new QuadTree(windowWidth, windowHeight, &_framebuffer);
-	_octree = new Octree(&triangles, 10);
+	_octree = new Octree(&triangles, 20);
 }
 
 
