@@ -1,3 +1,12 @@
+/**
+ * @file        base/core/object3d.cpp
+ * @brief       base class for all object in the scene
+ * @author      yy
+ * @email       syby119@126.com
+ * @date        2021/1/28
+ * @copyright   MIT license
+ */
+
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -39,7 +48,7 @@ Object3D* Object3D::getParent() const {
 
 /*
  * @brief set the parent of the object
- * @param parent parent of the object, can be nullptr to detach from the parent
+ * @param parent of the object, can be nullptr to detach from the parent
  * @todo maintain the world postion/rotation/scale of the object
  */
 void Object3D::setParent(Object3D* parent, bool stayInWorld) {
@@ -60,8 +69,11 @@ void Object3D::setParent(Object3D* parent, bool stayInWorld) {
 	if (_parent) {
 		_parent->_children.remove(this);
 	}
-
-	parent->_children.push_back(this);
+	
+	// append this to the children of the parent
+	if (parent) {
+		parent->_children.push_back(this);
+	}
 
 	_parent = parent;
 }
@@ -358,7 +370,7 @@ void Object3D::print(const glm::mat4x4& m) {
  *                        roll  vec3.z rotate angle around z-axis
  */
 glm::vec3 Object3D::quaternionToEulerAngles(const glm::quat& q, enum RotateOrder order) {
-	glm::vec3 ret;
+	glm::vec3 ret(0.0f);
 	float r11, r12, r21, r31, r32;
 	switch (order) {
 		case RotateOrder::XYZ:

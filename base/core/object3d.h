@@ -1,3 +1,12 @@
+/**
+ * @file        base/core/object3d.h
+ * @brief       base class for all object in the scene
+ * @author      yy
+ * @email       syby119@126.com
+ * @date        2021/1/28
+ * @copyright   MIT license
+ */
+
 #pragma once
 
 #include <list>
@@ -24,11 +33,12 @@ public:
 
 	/*
 	 * @brief enum class for rotate order of an euler angle 
-	 * @detial ABC can be understood as rotate first by C-axis, then B-axis, finally A-axis
+	 * @detial ABC can be understood as rotate first by A-axis, then B-axis, finally C-axis
 	 */
 	enum class RotateOrder {
 		XYZ, YZX, ZXY, XZY, YXZ, ZYX
 	};
+
 
 	/*
 	 * @brief default constructor
@@ -80,6 +90,7 @@ public:
 	 * @brief get all children of the object
      */
 	std::list<Object3D*> getChildren() const;
+
 
 	/*
 	 * @brief get the local position of the object
@@ -231,4 +242,10 @@ protected:
 	Object3D* _parent = nullptr;
 	/* relationship children */
 	std::list<Object3D*> _children;
+
+private:
+	/* universal uniform id of the object */
+	int _id = uuid++;
+	/* id generator */
+	static inline int uuid = 0;
 };

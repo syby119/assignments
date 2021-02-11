@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "camera.h"
-#include "light.h"
+#include "../camera/camera.h"
+#include "../light/light.h"
 #include "model.h"
 
 
@@ -12,7 +12,6 @@ public:
 	void add(const Model& model);
 	void add(const Light& light);
 	void add(const Camera& camera);
-	void re
 private:
 	std::vector<Model> _models;
 	std::vector<Light> _lights;

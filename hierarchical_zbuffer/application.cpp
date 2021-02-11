@@ -39,12 +39,17 @@ Application::Application() {
 		exit(EXIT_FAILURE);
 	}
 
-	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 5.0f));
+	_fpsCamera.setWorldPosition(glm::vec3(0.0f, 0.0f, 10.0f));
 
 
 	_loadModels();
 	_initShader();
 	
+	//_models[0].setLocalEulerAngles(glm::vec3(glm::radians(60.0f), glm::radians(60.0f), 0.0f), Object3D::RotateOrder::XYZ);
+	//_models[0].rotate(glm::vec3(glm::radians(60.0f), 0.0f, 0.0f), Object3D::RotateOrder::ZYX);
+	//_models[0].rotate(glm::vec3(0.0f, glm::radians(60.0f), 0.0f), Object3D::RotateOrder::ZYX);
+	//_models[0].rotate(glm::vec3(0.0f, 0.0f, glm::radians(60.0f)), Object3D::RotateOrder::ZYX);
+
 	_framebuffer = new Framebuffer(_windowWidth, _windowHeight);
 
 	std::vector<Vertex> _vertices;
