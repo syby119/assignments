@@ -7,45 +7,10 @@
 
 template <typename T>
 struct Matrix4x4 {
-	using column_type = Vector4<T>;
 public:
-	FUNC_DECL Matrix4x4();
+	using column_type = Vector4<T>;
 
-	FUNC_DECL Matrix4x4(const T c);
-
-	FUNC_DECL Matrix4x4(
-		T x0, T y0, T z0, T w0, 
-		T x1, T y1, T z1, T w1,
-		T x2, T y2, T z2, T w2,
-		T x3, T y3, T z3, T w3);
-
-	FUNC_DECL Matrix4x4(const Matrix4x4& m);
-
-	FUNC_DECL Matrix4x4(
-		const Vector4<T>& v0,
-		const Vector4<T>& v1,
-		const Vector4<T>& v2,
-		const Vector4<T>& v3);
-
-	FUNC_DECL ~Matrix4x4();
-
-	FUNC_DECL Matrix4x4& operator=(const Matrix4x4& m);
-
-	FUNC_DECL column_type& operator[](const int i);
-	FUNC_DECL const column_type& operator[](const int i) const;
-
-	FUNC_DECL Matrix4x4& operator+=(const Matrix4x4& m);
-	FUNC_DECL Matrix4x4& operator-=(const Matrix4x4& m);
-	FUNC_DECL Matrix4x4& operator*=(const T c);
-	FUNC_DECL Matrix4x4& operator*=(const Matrix4x4& m);
-	FUNC_DECL Matrix4x4& operator/=(const T c);
-	FUNC_DECL Matrix4x4& operator/=(const Matrix4x4& m);
-
-	T determinant() const;
-	void transpose();
-	void inverse();
-
-private:
+public:
 	union {
 		struct {
 			T e00, e10, e20, e30;
@@ -55,64 +20,101 @@ private:
 		};
 		Vector4<T> cols[4];
 	};
+
+public:
+	FUNC_QUALIFIER Matrix4x4();
+
+	FUNC_QUALIFIER Matrix4x4(const T c);
+
+	FUNC_QUALIFIER Matrix4x4(
+		T x0, T y0, T z0, T w0, 
+		T x1, T y1, T z1, T w1,
+		T x2, T y2, T z2, T w2,
+		T x3, T y3, T z3, T w3);
+
+	FUNC_QUALIFIER Matrix4x4(const Matrix4x4& m);
+
+	FUNC_QUALIFIER Matrix4x4(
+		const Vector4<T>& v0,
+		const Vector4<T>& v1,
+		const Vector4<T>& v2,
+		const Vector4<T>& v3);
+
+	FUNC_QUALIFIER ~Matrix4x4();
+
+	FUNC_QUALIFIER Matrix4x4& operator=(const Matrix4x4& m);
+
+	FUNC_QUALIFIER column_type& operator[](const int i);
+	FUNC_QUALIFIER const column_type& operator[](const int i) const;
+
+	FUNC_QUALIFIER Matrix4x4& operator+=(const Matrix4x4& m);
+	FUNC_QUALIFIER Matrix4x4& operator-=(const Matrix4x4& m);
+	FUNC_QUALIFIER Matrix4x4& operator*=(const T c);
+	FUNC_QUALIFIER Matrix4x4& operator*=(const Matrix4x4& m);
+	FUNC_QUALIFIER Matrix4x4& operator/=(const T c);
+	FUNC_QUALIFIER Matrix4x4& operator/=(const Matrix4x4& m);
+
+	FUNC_QUALIFIER T determinant() const;
+	FUNC_QUALIFIER void transpose();
+	FUNC_QUALIFIER void inverse();
 };
 
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator+(const Matrix4x4<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator-(const Matrix4x4<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator+(const Matrix4x4<T>& m, const Matrix4x4<T>& n);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator-(const Matrix4x4<T>& m, const Matrix4x4<T>& n);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator*(const T c, const Matrix4x4<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator*(const Matrix4x4<T>& m, const T c);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Vector4<T> operator*(const Matrix4x4<T>& m, const Vector4<T>& v);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator*(const Matrix4x4<T>& m, const Matrix4x4<T>& n);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator/(const Matrix4x4<T>& m, const T c);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator/(const T c, const Matrix4x4<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator/(const Matrix4x4<T>& m, const Matrix4x4<T>& n);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 T determinant(const Matrix4x4<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> transpose(const Matrix4x4<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> inverse(const Matrix4x4<T>& m);
 
 
 /********************* class function implementation *********************/
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>::Matrix4x4() : cols{ } { }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>::Matrix4x4(const T c)
 	: cols{ { c, 0, 0, 0 },
 			{ 0, c, 0, 0 },
 			{ 0, 0, c, 0 },
 			{ 0, 0, 0, c } } { }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>::Matrix4x4(
 	T x0, T y0, T z0, T w0,
 	T x1, T y1, T z1, T w1,
@@ -123,7 +125,7 @@ Matrix4x4<T>::Matrix4x4(
 			{ x2, y2, z2, w2 }, 
 			{ x3, y3, z3, w3 } } { }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>::Matrix4x4(
 	const Vector4<T>& v0,
 	const Vector4<T>& v1,
@@ -131,14 +133,14 @@ Matrix4x4<T>::Matrix4x4(
 	const Vector4<T>& v3)
 	: cols{ v0, v1, v2, v3 } {}
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>::Matrix4x4(const Matrix4x4& m) 
 	: cols{ m.cols[0], m.cols[1], m.cols[2], m.cols[3] } { }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>::~Matrix4x4() { }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>& Matrix4x4<T>::operator=(const Matrix4x4<T>& m) {
 	cols[0] = m.cols[0];
 	cols[1] = m.cols[1];
@@ -148,17 +150,17 @@ Matrix4x4<T>& Matrix4x4<T>::operator=(const Matrix4x4<T>& m) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Vector4<T>& Matrix4x4<T>::operator[](const int i) {
 	return cols[i];
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 const Vector4<T>& Matrix4x4<T>::operator[](const int i) const {
 	return cols[i];
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>& Matrix4x4<T>::operator+=(const Matrix4x4<T>& m) {
 	cols[0] += m.cols[0];
 	cols[1] += m.cols[1];
@@ -168,7 +170,7 @@ Matrix4x4<T>& Matrix4x4<T>::operator+=(const Matrix4x4<T>& m) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>& Matrix4x4<T>::operator-=(const Matrix4x4<T>& m) {
 	cols[0] -= m.cols[0];
 	cols[1] -= m.cols[1];
@@ -178,7 +180,7 @@ Matrix4x4<T>& Matrix4x4<T>::operator-=(const Matrix4x4<T>& m) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>& Matrix4x4<T>::operator*=(const T c) {
 	cols[0] *= c;
 	cols[1] *= c;
@@ -188,12 +190,12 @@ Matrix4x4<T>& Matrix4x4<T>::operator*=(const T c) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>& Matrix4x4<T>::operator*=(const Matrix4x4<T>& m) {
 	return (*this = (*this) * m);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>& Matrix4x4<T>::operator/=(const T c) {
 	T rc = static_cast<T>(1) / c;
 	cols[0] *= rc;
@@ -204,12 +206,12 @@ Matrix4x4<T>& Matrix4x4<T>::operator/=(const T c) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>& Matrix4x4<T>::operator/=(const Matrix4x4<T>& m) {
 	return (*this *= ::inverse(m));
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 T Matrix4x4<T>::determinant() const {
 	T sub2_01_01 = e22 * e33 - e32 * e23;
 	T sub2_01_02 = e21 * e33 - e23 * e31;
@@ -226,7 +228,7 @@ T Matrix4x4<T>::determinant() const {
 	return e00 * sub3_0_0 - e01 * sub3_0_1 + e02 * sub3_0_2 - e03 * sub3_0_3;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 void Matrix4x4<T>::transpose() {
 	std::swap(e01, e10);
 	std::swap(e02, e20);
@@ -236,43 +238,43 @@ void Matrix4x4<T>::transpose() {
 	std::swap(e23, e32);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 void Matrix4x4<T>::inverse() {
 	*this = ::inverse(*this);
 }
 
 /********************* global function implementation *********************/
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator+(const Matrix4x4<T>& m) {
 	return m;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator-(const Matrix4x4<T>& m) {
 	return Matrix4x4<T>(-m[0], -m[1], -m[2], -m[3]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator+(const Matrix4x4<T>& m, const Matrix4x4<T>& n) {
 	return Matrix4x4<T>(m[0] + n[0], m[1] + n[1], m[2] + n[2], m[3] + n[3]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator-(const Matrix4x4<T>& m, const Matrix4x4<T>& n) {
 	return Matrix4x4<T>(m[0] - n[0], m[1] - n[1], m[2] - n[2], m[3] - n[3]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator*(const T c, const Matrix4x4<T>& m) {
 	return Matrix4x4<T>(c * m[0], c * m[1], c * m[2], c * m[3]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator*(const Matrix4x4<T>& m, const T c) {
 	return Matrix4x4<T>(c * m[0], c * m[1], c * m[2], c * m[3]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Vector4<T> operator*(const Matrix4x4<T>& m, const Vector4<T>& v) {
 	return Vector4<T>(
 		m.e00 * v.x + m.e01 * v.y + m.e02 * v.z + m.e03 * v.w,
@@ -281,7 +283,7 @@ Vector4<T> operator*(const Matrix4x4<T>& m, const Vector4<T>& v) {
 		m.e30 * v.x + m.e31 * v.y + m.e32 * v.z + m.e33 * v.w);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator*(const Matrix4x4<T>& m, const Matrix4x4<T>& n) {
 	return Matrix4x4<T>(
 		m.e00 * n.e00 + m.e01 * n.e10 + m.e02 * n.e20 + m.e03 * n.e30, // m00
@@ -302,28 +304,28 @@ Matrix4x4<T> operator*(const Matrix4x4<T>& m, const Matrix4x4<T>& n) {
 		m.e30 * n.e03 + m.e31 * n.e13 + m.e32 * n.e23 + m.e33 * n.e33);// m33
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator/(const Matrix4x4<T>& m, const T c) {
 	T rc = static_cast<T>(1) / c;
 	return Matrix4x4<T>(rc * m[0], rc * m[1], rc * m[2], rc * m[3]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator/(const T c, const Matrix4x4<T>& m) {
 	return c * inverse(m);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator/(const Matrix4x4<T>& m, const Matrix4x4<T>& n) {
 	return m * inverse(n);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 T determinant(const Matrix4x4<T>& m) {
 	return m.determinant();
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> transpose(const Matrix4x4<T>& m) {
 	return Matrix4x4<T>(
 		m.e00, m.e01, m.e02, m.e03,
@@ -343,7 +345,7 @@ Matrix4x4<T> transpose(const Matrix4x4<T>& m) {
  *		   A# = | A11 -A01|
  *              |-A10  A00|
  */
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> inverse(const Matrix4x4<T>& m) {
 	T ab00 = m.e11 * m.e02 - m.e01 * m.e12;
 	T ab01 = m.e11 * m.e03 - m.e01 * m.e13;

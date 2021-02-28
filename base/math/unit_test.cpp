@@ -1,4 +1,5 @@
 #include "./print_info.hpp"
+#include "./rotation_cast.hpp"
 
 void unitTestQuaternion(bool enable = false) {
 	if (!enable) {
@@ -242,6 +243,19 @@ void unitTestVector3(bool enable = false) {
 		print(v);
 	}
 
+	/* v.length() */ {
+		printf("\nv.length()\n");
+		Vector3<float> v(1.0f, 2.0f, 3.0f);
+		printf("%f\n", v.length());
+	}
+
+	/* v.normalize() */ {
+		printf("\nv.normalize()\n");
+		Vector3<float> v(1.0f, 2.0f, 3.0f);
+		v.normalize();
+		print(v);
+	}
+
 	/* v.dot(u) */ {
 		printf("\nv.dot(u)\n");
 		Vector3<float> v(1.0f, 2.0f, 3.0f);
@@ -301,6 +315,12 @@ void unitTestVector3(bool enable = false) {
 		printf("\nv / c\n");
 		Vector3<float> v(1.0f, 2.0f, 3.0f);
 		print(v / 2.0f);
+	}
+
+	/* normalize(v) */ {
+		printf("\nnormalize(v)\n");
+		Vector3<float> v(1.0f, 2.0f, 3.0f);
+		print(normalize(v));
 	}
 
 	/* dot(u, v) */ {
@@ -404,6 +424,19 @@ void unitTestVector4(bool enable = false) {
 		print(v);
 	}
 
+	/* v.length() */ {
+		printf("\nv.length()\n");
+		Vector4<float> v(1.0f, 2.0f, 3.0f, 4.0f);
+		printf("%f\n", v.length());
+	}
+
+	/* v.normalize() */ {
+		printf("\nv.normalize()\n");
+		Vector4<float> v(1.0f, 2.0f, 3.0f, 4.0f);
+		v.normalize();
+		print(v);
+	}
+
 	/* v.dot(u) */ {
 		printf("\nv.dot(u)\n");
 		Vector4<float> v(1.0f, 2.0f, 3.0f, 4.0f);
@@ -418,7 +451,6 @@ void unitTestVector4(bool enable = false) {
 		Vector4<float> v(1.0f, 2.0f, 3.0f, 4.0f);
 		print(+v);
 	}
-
 
 	/* operator- (unary)*/ {
 		printf("\n-v\n");
@@ -457,6 +489,13 @@ void unitTestVector4(bool enable = false) {
 		Vector4<float> v(1.0f, 2.0f, 3.0f, 4.0f);
 		print(v / 2.0f);
 	}
+	
+	/* normalize(v) */ {
+		printf("\nnormalize(v)\n");
+		Vector4<float> v(1.0f, 2.0f, 3.0f, 4.0f);
+		print(normalize(v));
+	}
+
 
 	/* dot(u, v) */ {
 		printf("\ndot(u, v)\n");
@@ -1204,6 +1243,912 @@ void unitTestMatrix4x4(bool enable = false) {
 
 }
 
+void unitTestEulerAngle(bool enable = false) {
+	if (!enable) {
+		return;
+	}
+
+	printf("========= Euler Angle Unit Test =========");
+
+	printf("\n****************** class member function *****************\n");
+	/* default constructor */ {
+		printf("\ndefault constructor: zero rotation with x-y-z intrinsic rotate\n");
+		EulerAngle<float> e;
+		print(e);
+	}
+
+	/* constructor with 3 angles and rotate order */ {
+		printf("\nconstructor with 3 angles and rotate order\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f);
+		print(e);
+	}
+
+	/* copy constructor */ {
+		printf("\ncopy constructor\n");
+		EulerAngle<float> f(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		EulerAngle<float> e = f;
+		print(e);
+	}
+
+	/* move constructor */ {
+		printf("\nno explicit move constructor\n");
+	}
+
+	/* operator = */ {
+		printf("\ne = f\n");
+		EulerAngle<float> e;
+		EulerAngle<float> f(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		e = f;
+		print(e);
+	}
+
+	/* operator += */ {
+		printf("\ne += f\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		EulerAngle<float> f(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		e += f;
+
+		print(e);
+	}
+
+	/* operator -= */ {
+		printf("\ne -= f\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		EulerAngle<float> f(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		e -= f;
+
+		print(e);
+	}
+
+	/* operator *= */ {
+		printf("\ne *= c\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		e *= 2.0f;
+
+		print(e);
+	}
+
+	/* operator /= */ {
+		printf("\ne /= c\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		e /= 2.0f;
+
+		print(e);
+	}
+
+	printf("\n****************** global function *****************\n");
+	/* operator + (unary)*/ {
+		printf("\n+e\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		print(+e);
+	}
+
+	/* operator - (unary)*/ {
+		printf("\n-e\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		print(-e);
+	}
+
+	/* operator + */ {
+		printf("\ne + f\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		EulerAngle<float> f(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		print(e + f);
+	}
+
+	/* operator - */ {
+		printf("\ne - f\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		EulerAngle<float> f(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		print(e + f);
+	}
+
+	/* operator * */ {
+		printf("\nc * e\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		print(2.0f * e);
+	}
+
+	/* operator * */ {
+		printf("\ne * c\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		print(e * 2.0f);
+	}
+
+	/* operator / */ {
+		printf("\ne / c\n");
+		EulerAngle<float> e(1.0f, 2.0f, 3.0f, RotateOrder::ZXY);
+		print(e / 2.0f);
+	}
+}
+
+void unitTestConversion(bool enable = false) {
+	if (!enable) {
+		return;
+	}
+	
+	printf("========= Rotation Convertion Unit Test =========");
+
+	printf("\n--------- Convert To Matrix ----------\n");
+	/* quaternion to mat3 */ {
+		printf("\nQuaternion to Matrix3x3\n");
+		Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+		float angle = radian_cast(60.0f);
+		Quaternion<float> q = quat_cast(axis, angle);
+		print(q);
+		print(mat3_cast(q));
+	}
+
+	/* quaternion to mat4 */ {
+		printf("\nQuaternion to Matrix4x4\n");
+		Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+		float angle = radian_cast(60.0f);
+		Quaternion<float> q = quat_cast(axis, angle);
+		print(q);
+		print(mat4_cast(q));
+	}
+
+	/* euler angle to mat3 */ {
+		printf("\nEulerAngle to Matrix3x3\n");
+		EulerAngle<float> exyz(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::XYZ);
+		print(exyz);
+		print(mat3_cast(exyz));
+		printf("\n");
+
+		EulerAngle<float> exzy(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::XZY);
+		print(exzy);
+		print(mat3_cast(exzy));
+		printf("\n");
+
+		EulerAngle<float> eyxz(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YXZ);
+		print(eyxz);
+		print(mat3_cast(eyxz));
+		printf("\n");
+
+		EulerAngle<float> eyzx(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YZX);
+		print(eyzx);
+		print(mat3_cast(eyzx));
+		printf("\n");
+
+		EulerAngle<float> ezxy(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZXY);
+		print(ezxy);
+		print(mat3_cast(ezxy));
+		printf("\n");
+
+		EulerAngle<float> ezyx(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZYX);
+		print(ezyx);
+		print(mat3_cast(ezyx));
+		printf("\n");
+	}
+
+	/* euler angle to mat4 */ {
+		printf("\nEulerAngle to Matrix4x4\n");
+
+		EulerAngle<float> exyz(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::XYZ);
+		print(exyz);
+		print(mat4_cast(exyz));
+		printf("\n");
+
+		EulerAngle<float> exzy(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::XZY);
+		print(exzy);
+		print(mat4_cast(exzy));
+		printf("\n");
+
+		EulerAngle<float> eyxz(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YXZ);
+		print(eyxz);
+		print(mat4_cast(eyxz));
+		printf("\n");
+
+		EulerAngle<float> eyzx(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YZX);
+		print(eyzx);
+		print(mat4_cast(eyzx));
+		printf("\n");
+
+		EulerAngle<float> ezxy(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZXY);
+		print(ezxy);
+		print(mat4_cast(ezxy));
+		printf("\n");
+
+		EulerAngle<float> ezyx(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZYX);
+		print(ezyx);
+		print(mat4_cast(ezyx));
+		printf("\n");
+	}
+
+	printf("\n--------- Convert To Quaternion ----------\n");
+	/* mat3 to quaternion */ {
+		printf("\nMatrix3x3 to Quaternion\n");
+		Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+		float angle = radian_cast(60.0f);
+		Matrix3x3<float> m = mat3_cast(axis, angle);
+		print(m);
+		Quaternion<float> q = quat_cast(m);
+		print(q);
+	}
+
+	/* mat4 to quaternion */ {
+		printf("\nMatrix4x4 to Quaternion\n");
+		Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+		float angle = radian_cast(60.0f);
+		Matrix4x4<float> m = mat4_cast(axis, angle);
+		print(m);
+		Quaternion<float> q = quat_cast(m);
+		print(q);
+	}
+
+	/* euler angle to quaternion */ {
+		printf("\nEuler Angle to Quaternion\n");
+
+		EulerAngle<float> exyz(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::XYZ);
+		print(exyz);
+		print(quat_cast(exyz));
+
+		EulerAngle<float> exzy(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::XZY);
+		print(exzy);
+		print(quat_cast(exzy));
+
+		EulerAngle<float> eyxz(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YXZ);
+		print(eyxz);
+		print(quat_cast(eyxz));
+
+
+		EulerAngle<float> eyzx(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YZX);
+		print(eyzx);
+		print(quat_cast(eyzx));
+
+		EulerAngle<float> ezxy(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZXY);
+		print(ezxy);
+		print(quat_cast(ezxy));
+
+		EulerAngle<float> ezyx(
+			radian_cast(10.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZYX);
+		print(ezyx);
+		print(quat_cast(ezyx));
+	}
+
+	printf("\n--------- Convert To Euler Angle ----------\n");
+	/* mat3 to euler angle */ {
+		printf("\nMatrix3x3 to EulerAngle\n");
+
+		/* x-y-z intrinsic */ {
+			printf("+ x-y-z intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix3x3<float> m = mat3_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::XYZ));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(90.0f), radian_cast(30.0f), RotateOrder::XYZ));
+				print(m);
+				print(euler_cast(m, RotateOrder::XYZ));
+				print(mat3_cast(euler_cast(m, RotateOrder::XYZ)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(-90.0f), radian_cast(30.0f), RotateOrder::XYZ));
+				print(m);
+				print(euler_cast(m, RotateOrder::XYZ));
+				print(mat3_cast(euler_cast(m, RotateOrder::XYZ)));
+				printf("\n");
+			}
+		}
+
+		/* x-z-y intrinsic */ {
+			printf("+ x-z-y intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix3x3<float> m = mat3_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::XZY));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(90.0f), RotateOrder::XZY));
+				print(m);
+				print(euler_cast(m, RotateOrder::XZY));
+				print(mat3_cast(euler_cast(m, RotateOrder::XZY)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(-90.0f), RotateOrder::XZY));
+				print(m);
+				print(euler_cast(m, RotateOrder::XZY));
+				print(mat3_cast(euler_cast(m, RotateOrder::XZY)));
+				printf("\n");
+			}
+		}
+
+		/* y-x-z intrinsic */ {
+			printf("+ y-x-z intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix3x3<float> m = mat3_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::YXZ));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YXZ));
+				print(m);
+				print(euler_cast(m, RotateOrder::YXZ));
+				print(mat3_cast(euler_cast(m, RotateOrder::YXZ)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(-90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YXZ));
+				print(m);
+				print(euler_cast(m, RotateOrder::YXZ));
+				print(mat3_cast(euler_cast(m, RotateOrder::YXZ)));
+				printf("\n");
+			}
+		}
+
+		/* y-z-x intrinsic */ {
+			printf("+ y-z-x intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix3x3<float> m = mat3_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::YZX));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(90.0f), RotateOrder::YZX));
+				print(m);
+				print(euler_cast(m, RotateOrder::YZX));
+				print(mat3_cast(euler_cast(m, RotateOrder::YZX)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(-90.0f), RotateOrder::YZX));
+				print(m);
+				print(euler_cast(m, RotateOrder::YZX));
+				print(mat3_cast(euler_cast(m, RotateOrder::YZX)));
+				printf("\n");
+			}
+		}
+
+		/* z-x-y intrinsic */ {
+			printf("+ z-x-y intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix3x3<float> m = mat3_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::ZXY));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZXY));
+				print(m);
+				print(euler_cast(m, RotateOrder::ZXY));
+				print(mat3_cast(euler_cast(m, RotateOrder::ZXY)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(-90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZXY));
+				print(m);
+				print(euler_cast(m, RotateOrder::ZXY));
+				print(mat3_cast(euler_cast(m, RotateOrder::ZXY)));
+				printf("\n");
+			}
+		}
+
+		/* z-y-x intrinsic */ {
+			printf("+ z-y-x intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix3x3<float> m = mat3_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::ZYX));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(90.0f), radian_cast(30.0f), RotateOrder::ZYX));
+				print(m);
+				print(euler_cast(m, RotateOrder::ZYX));
+				print(mat3_cast(euler_cast(m, RotateOrder::ZYX)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix3x3<float> m = mat3_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(-90.0f), radian_cast(30.0f), RotateOrder::ZYX));
+				print(m);
+				print(euler_cast(m, RotateOrder::ZYX));
+				print(mat3_cast(euler_cast(m, RotateOrder::ZYX)));
+				printf("\n");
+			}
+		}
+	}
+
+	/* mat4 to euler angle */ {
+		printf("\nMatrix4x4 to EulerAngle\n");
+
+		/* x-y-z intrinsic */ {
+			printf("+ x-y-z intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix4x4<float> m = mat4_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::XYZ));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(90.0f), radian_cast(30.0f), RotateOrder::XYZ));
+				print(m);
+				print(euler_cast(m, RotateOrder::XYZ));
+				print(mat4_cast(euler_cast(m, RotateOrder::XYZ)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(-90.0f), radian_cast(30.0f), RotateOrder::XYZ));
+				print(m);
+				print(euler_cast(m, RotateOrder::XYZ));
+				print(mat4_cast(euler_cast(m, RotateOrder::XYZ)));
+				printf("\n");
+			}
+		}
+
+		/* x-z-y intrinsic */ {
+			printf("+ x-z-y intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix4x4<float> m = mat4_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::XZY));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(90.0f), RotateOrder::XZY));
+				print(m);
+				print(euler_cast(m, RotateOrder::XZY));
+				print(mat4_cast(euler_cast(m, RotateOrder::XZY)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(-90.0f), RotateOrder::XZY));
+				print(m);
+				print(euler_cast(m, RotateOrder::XZY));
+				print(mat4_cast(euler_cast(m, RotateOrder::XZY)));
+				printf("\n");
+			}
+		}
+
+		/* y-x-z intrinsic */ {
+			printf("+ y-x-z intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix4x4<float> m = mat4_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::YXZ));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YXZ));
+				print(m);
+				print(euler_cast(m, RotateOrder::YXZ));
+				print(mat4_cast(euler_cast(m, RotateOrder::YXZ)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(-90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YXZ));
+				print(m);
+				print(euler_cast(m, RotateOrder::YXZ));
+				print(mat4_cast(euler_cast(m, RotateOrder::YXZ)));
+				printf("\n");
+			}
+		}
+
+		/* y-z-x intrinsic */ {
+			printf("+ y-z-x intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix4x4<float> m = mat4_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::YZX));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(90.0f), RotateOrder::YZX));
+				print(m);
+				print(euler_cast(m, RotateOrder::YZX));
+				print(mat4_cast(euler_cast(m, RotateOrder::YZX)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(-90.0f), RotateOrder::YZX));
+				print(m);
+				print(euler_cast(m, RotateOrder::YZX));
+				print(mat4_cast(euler_cast(m, RotateOrder::YZX)));
+				printf("\n");
+			}
+		}
+
+		/* z-x-y intrinsic */ {
+			printf("+ z-x-y intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix4x4<float> m = mat4_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::ZXY));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZXY));
+				print(m);
+				print(euler_cast(m, RotateOrder::ZXY));
+				print(mat4_cast(euler_cast(m, RotateOrder::ZXY)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(-90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZXY));
+				print(m);
+				print(euler_cast(m, RotateOrder::ZXY));
+				print(mat4_cast(euler_cast(m, RotateOrder::ZXY)));
+				printf("\n");
+			}
+		}
+
+		/* z-y-x intrinsic */ {
+			printf("+ z-y-x intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Matrix4x4<float> m = mat4_cast(axis, angle);
+				print(m);
+				print(euler_cast(m, RotateOrder::ZYX));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(90.0f), radian_cast(30.0f), RotateOrder::ZYX));
+				print(m);
+				print(euler_cast(m, RotateOrder::ZYX));
+				print(mat4_cast(euler_cast(m, RotateOrder::ZYX)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Matrix4x4<float> m = mat4_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(-90.0f), radian_cast(30.0f), RotateOrder::ZYX));
+				print(m);
+				print(euler_cast(m, RotateOrder::ZYX));
+				print(mat4_cast(euler_cast(m, RotateOrder::ZYX)));
+				printf("\n");
+			}
+		}
+	}
+
+	/* quaternion to euler angle */ {
+		printf("\nQuaternion to EulerAngle\n");
+
+		/* x-y-z intrinsic */ {
+			printf("+ x-y-z intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Quaternion<float> q = quat_cast(axis, angle);
+				print(q);
+				print(euler_cast(q, RotateOrder::XYZ));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(90.0f), radian_cast(30.0f), RotateOrder::XYZ));
+				print(q);
+				print(euler_cast(q, RotateOrder::XYZ));
+				print(mat3_cast(euler_cast(q, RotateOrder::XYZ)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(-90.0f), radian_cast(30.0f), RotateOrder::XYZ));
+				print(q);
+				print(euler_cast(q, RotateOrder::XYZ));
+				print(mat3_cast(euler_cast(q, RotateOrder::XYZ)));
+				printf("\n");
+			}
+		}
+
+		/* x-z-y intrinsic */ {
+			printf("+ x-z-y intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Quaternion<float> q = quat_cast(axis, angle);
+				print(q);
+				print(euler_cast(q, RotateOrder::XZY));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(90.0f), RotateOrder::XZY));
+				print(q);
+				print(euler_cast(q, RotateOrder::XZY));
+				print(mat3_cast(euler_cast(q, RotateOrder::XZY)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(-90.0f), RotateOrder::XZY));
+				print(q);
+				print(euler_cast(q, RotateOrder::XZY));
+				print(mat3_cast(euler_cast(q, RotateOrder::XZY)));
+				printf("\n");
+			}
+		}
+
+		/* y-x-z intrinsic */ {
+			printf("+ y-x-z intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Quaternion<float> q = quat_cast(axis, angle);
+				print(q);
+				print(euler_cast(q, RotateOrder::YXZ));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YXZ));
+				print(q);
+				print(euler_cast(q, RotateOrder::YXZ));
+				print(mat3_cast(euler_cast(q, RotateOrder::YXZ)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(-90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::YXZ));
+				print(q);
+				print(euler_cast(q, RotateOrder::YXZ));
+				print(mat3_cast(euler_cast(q, RotateOrder::YXZ)));
+				printf("\n");
+			}
+		}
+
+		/* y-z-x intrinsic */ {
+			printf("+ y-z-x intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Quaternion<float> q = quat_cast(axis, angle);
+				print(q);
+				print(euler_cast(q, RotateOrder::YZX));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(90.0f), RotateOrder::YZX));
+				print(q);
+				print(euler_cast(q, RotateOrder::YZX));
+				print(mat3_cast(euler_cast(q, RotateOrder::YZX)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(20.0f), radian_cast(-90.0f), RotateOrder::YZX));
+				print(q);
+				print(euler_cast(q, RotateOrder::YZX));
+				print(mat3_cast(euler_cast(q, RotateOrder::YZX)));
+				printf("\n");
+			}
+		}
+
+		/* z-x-y intrinsic */ {
+			printf("+ z-x-y intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Quaternion<float> q = quat_cast(axis, angle);
+				print(q);
+				print(euler_cast(q, RotateOrder::ZXY));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZXY));
+				print(q);
+				print(euler_cast(q, RotateOrder::ZXY));
+				print(mat3_cast(euler_cast(q, RotateOrder::ZXY)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(-90.0f), radian_cast(20.0f), radian_cast(30.0f), RotateOrder::ZXY));
+				print(q);
+				print(euler_cast(q, RotateOrder::ZXY));
+				print(mat3_cast(euler_cast(q, RotateOrder::ZXY)));
+				printf("\n");
+			}
+		}
+
+		/* z-y-x intrinsic */ {
+			printf("+ z-y-x intrinsic\n");
+
+			/* usual case */ {
+				printf("+ usual case\n");
+				Vector3<float> axis = normalize(Vector3<float>(1.0f, -2.0f, 3.0f));
+				float angle = radian_cast(60.0f);
+				Quaternion<float> q = quat_cast(axis, angle);
+				print(q);
+				print(euler_cast(q, RotateOrder::ZYX));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 1\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(90.0f), radian_cast(30.0f), RotateOrder::ZYX));
+				print(q);
+				print(euler_cast(q, RotateOrder::ZYX));
+				print(mat3_cast(euler_cast(q, RotateOrder::ZYX)));
+				printf("\n");
+			}
+
+			/* singularity */ {
+				printf("+ singularity 2\n");
+				Quaternion<float> q = quat_cast(
+					EulerAngle<float>(radian_cast(10.0f), radian_cast(-90.0f), radian_cast(30.0f), RotateOrder::ZYX));
+				print(q);
+				print(euler_cast(q, RotateOrder::ZYX));
+				print(mat3_cast(euler_cast(q, RotateOrder::ZYX)));
+				printf("\n");
+			}
+		}
+	}
+}
+
 int main() {
 	unitTestQuaternion();
 
@@ -1214,6 +2159,10 @@ int main() {
 	unitTestMatrix3x3();
 
 	unitTestMatrix4x4();
+
+	unitTestEulerAngle();
+
+	unitTestConversion();
 
 	return 0;
 }

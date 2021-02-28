@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <utility>
 
 #include "./math_util.hpp"
@@ -11,41 +10,7 @@ struct Matrix3x3 {
 public:
 	using column_type = Vector3<T>;
 
-	FUNC_DECL Matrix3x3();
-	
-	FUNC_DECL Matrix3x3(const T c);
-
-	FUNC_DECL Matrix3x3(
-		T x0, T y0, T z0,
-		T x1, T y1, T z1,
-		T x2, T y2, T z2);
-	
-	FUNC_DECL Matrix3x3(const Matrix3x3& m);
-	
-	FUNC_DECL Matrix3x3(
-		const column_type& column0,
-		const column_type& column1,
-		const column_type& column2);
-	
-	FUNC_DECL ~Matrix3x3();
-
-	FUNC_DECL Matrix3x3& operator=(const Matrix3x3& m);
-	
-	FUNC_DECL column_type& operator[](const uint32_t i);
-	FUNC_DECL const column_type& operator[](const uint32_t i) const;
-
-	FUNC_DECL Matrix3x3& operator+=(const Matrix3x3& m);
-	FUNC_DECL Matrix3x3& operator-=(const Matrix3x3& m);
-	FUNC_DECL Matrix3x3& operator*=(const T c);
-	FUNC_DECL Matrix3x3& operator*=(const Matrix3x3& m);
-	FUNC_DECL Matrix3x3& operator/=(const T c);
-	FUNC_DECL Matrix3x3& operator/=(const Matrix3x3& m);
-
-	T determinant() const;
-	void transpose();
-	void inverse();
-
-private:
+public:
 	union {
 		struct {
 			T e00, e10, e20;
@@ -54,76 +19,113 @@ private:
 		};
 		column_type cols[3];
 	};
+
+public:
+	FUNC_QUALIFIER Matrix3x3();
+	
+	FUNC_QUALIFIER Matrix3x3(const T c);
+
+	FUNC_QUALIFIER Matrix3x3(
+		T x0, T y0, T z0,
+		T x1, T y1, T z1,
+		T x2, T y2, T z2);
+	
+	FUNC_QUALIFIER Matrix3x3(
+		const column_type& column0,
+		const column_type& column1,
+		const column_type& column2);
+	
+	FUNC_QUALIFIER Matrix3x3(const Matrix3x3& m);
+
+	FUNC_QUALIFIER ~Matrix3x3();
+
+	FUNC_QUALIFIER Matrix3x3& operator=(const Matrix3x3& m);
+	
+	FUNC_QUALIFIER column_type& operator[](const int i);
+	FUNC_QUALIFIER const column_type& operator[](const int i) const;
+
+	FUNC_QUALIFIER Matrix3x3& operator+=(const Matrix3x3& m);
+	FUNC_QUALIFIER Matrix3x3& operator-=(const Matrix3x3& m);
+	FUNC_QUALIFIER Matrix3x3& operator*=(const T c);
+	FUNC_QUALIFIER Matrix3x3& operator*=(const Matrix3x3& m);
+	FUNC_QUALIFIER Matrix3x3& operator/=(const T c);
+	FUNC_QUALIFIER Matrix3x3& operator/=(const Matrix3x3& m);
+
+	FUNC_QUALIFIER T determinant() const;
+	FUNC_QUALIFIER void transpose();
+	FUNC_QUALIFIER void inverse();
 };
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator+(const Matrix3x3<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator-(const Matrix3x3<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator+(const Matrix3x3<T>& m, const Matrix3x3<T>& n);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator-(const Matrix3x3<T>& m, const Matrix3x3<T>& n);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator*(const T c, const Matrix3x3<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator*(const Matrix3x3<T>& m, const T c);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator*(const Matrix3x3<T>& m, const Matrix3x3<T>& n);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator/(const Matrix3x3<T>& m, const Matrix3x3<T>& n);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator/(const Matrix3x3<T>& m, const T c);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Vector3<T> operator*(const Matrix3x3<T>& m, const Vector3<T>& v);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator/(const T c, const Matrix3x3<T>& m);
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator*(const Matrix3x3<T>& m, const Matrix3x3<T>& n);
 
 /********************* class function implementation *********************/
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>::Matrix3x3(): cols{ } { }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>::Matrix3x3(const T c) 
 	: cols{ { c, 0, 0 }, { 0, c, 0 }, { 0, 0, c } } { }
 
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>::Matrix3x3(
 	T x0, T y0, T z0,
 	T x1, T y1, T z1,
 	T x2, T y2, T z2)
 	: cols{ { x0, y0, z0 }, { x1, y1, z1 }, { x2, y2, z2 } } { }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>::Matrix3x3(
 	const column_type& column0,
 	const column_type& column1,
 	const column_type& column2)
 	: cols{ column0, column1, column2 } { }
 
-template <typename T> FUNC_DECL
-Matrix3x3<T>::Matrix3x3(const Matrix3x3& m)
+template <typename T> FUNC_QUALIFIER
+Matrix3x3<T>::Matrix3x3(const Matrix3x3<T>& m)
 	: cols{ m.cols[0], m.cols[1], m.cols[2] } { }
 
-template <typename T> FUNC_DECL
+
+
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>::~Matrix3x3() { }
 
-template <typename T> FUNC_DECL
-Matrix3x3<T>& Matrix3x3<T>::operator=(const Matrix3x3& m) {
+template <typename T> FUNC_QUALIFIER
+Matrix3x3<T>& Matrix3x3<T>::operator=(const Matrix3x3<T>& m) {
 	cols[0] = m.cols[0];
 	cols[1] = m.cols[1];
 	cols[2] = m.cols[2];
@@ -131,17 +133,17 @@ Matrix3x3<T>& Matrix3x3<T>::operator=(const Matrix3x3& m) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
-typename Matrix3x3<T>::column_type& Matrix3x3<T>::operator[](const uint32_t i) {
+template <typename T> FUNC_QUALIFIER
+typename Matrix3x3<T>::column_type& Matrix3x3<T>::operator[](const int i) {
 	return cols[i];
 }
 
-template <typename T> FUNC_DECL
-const typename Matrix3x3<T>::column_type& Matrix3x3<T>::operator[](const uint32_t i) const {
+template <typename T> FUNC_QUALIFIER
+const typename Matrix3x3<T>::column_type& Matrix3x3<T>::operator[](const int i) const {
 	return cols[i];
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>& Matrix3x3<T>::operator+=(const Matrix3x3<T>& m) {
 	cols[0] += m.cols[0];
 	cols[1] += m.cols[1];
@@ -150,7 +152,7 @@ Matrix3x3<T>& Matrix3x3<T>::operator+=(const Matrix3x3<T>& m) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>& Matrix3x3<T>::operator-=(const Matrix3x3<T>& m) {
 	cols[0] -= m.cols[0];
 	cols[1] -= m.cols[1];
@@ -159,7 +161,7 @@ Matrix3x3<T>& Matrix3x3<T>::operator-=(const Matrix3x3<T>& m) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>& Matrix3x3<T>::operator*=(const T c) {
 	cols[0] *= c;
 	cols[1] *= c;
@@ -168,12 +170,12 @@ Matrix3x3<T>& Matrix3x3<T>::operator*=(const T c) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>& Matrix3x3<T>::operator*=(const Matrix3x3& m) {
 	return (*this = (*this * m));
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>& Matrix3x3<T>::operator/=(const T c) {
 	const T rc = static_cast<T>(1) / c;
 	cols[0] *= rc;
@@ -183,27 +185,27 @@ Matrix3x3<T>& Matrix3x3<T>::operator/=(const T c) {
 	return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>& Matrix3x3<T>::operator/=(const Matrix3x3<T>& m) {
 	 *this *= ::inverse(m);
 	 return *this;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 T Matrix3x3<T>::determinant() const {
 	return + e00 * (e11 * e22 - e21 * e12)
 		   - e10 * (e01 * e22 - e21 * e02)
 		   + e20 * (e01 * e12 - e11 * e02);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 void Matrix3x3<T>::transpose() {
 	std::swap(e10, e01);
 	std::swap(e20, e02);
 	std::swap(e21, e12);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 void Matrix3x3<T>::inverse() {
 	T rdet = static_cast<T>(1) / determinant();
 
@@ -224,37 +226,37 @@ void Matrix3x3<T>::inverse() {
 
 
 /********************* global function implementation *********************/
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator+(const Matrix3x3<T>& m) {
 	return m;
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator-(const Matrix3x3<T>& m) {
 	return Matrix3x3<T>(-m[0], -m[1], -m[2]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator+(const Matrix3x3<T>& m, const Matrix3x3<T>& n) {
 	return Matrix3x3<T>(m[0] + n[0], m[1] + n[1], m[2] + n[2]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator-(const Matrix3x3<T>& m, const Matrix3x3<T>& n) {
 	return Matrix3x3<T>(m[0] - n[0], m[1] - n[1], m[2] - n[2]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator*(const T c, const Matrix3x3<T>& m) {
 	return Matrix3x3<T>(c * m[0], c * m[1], c * m[2]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator*(const Matrix3x3<T>& m, const T c) {
 	return Matrix3x3<T>(c * m[0], c * m[1], c * m[2]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Vector3<T> operator*(const Matrix3x3<T>& m, const Vector3<T>& v) {
 	return Vector3<T>(
 		m.e00 * v.x + m.e01 * v.y + m.e02 * v.z,
@@ -262,7 +264,7 @@ Vector3<T> operator*(const Matrix3x3<T>& m, const Vector3<T>& v) {
 		m.e20 * v.x + m.e21 * v.y + m.e22 * v.z);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator*(const Matrix3x3<T>& m, const Matrix3x3<T>& n) {
 	return Matrix3x3<T>(
 		m.e00 * n.e00 + m.e01 * n.e10 + m.e02 * n.e20, // m00
@@ -276,28 +278,28 @@ Matrix3x3<T> operator*(const Matrix3x3<T>& m, const Matrix3x3<T>& n) {
 		m.e20 * n.e02 + m.e21 * n.e12 + m.e22 * n.e22);// m22
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator/(const Matrix3x3<T>& m, const T c) {
 	T rc = static_cast<T>(1) / c;
 	return Matrix3x3<T>(rc * m[0], rc * m[1], rc * m[2]);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator/(const T c, const Matrix3x3<T>& m) {
 	return c * inverse(m);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator/(const Matrix3x3<T>& m, const Matrix3x3<T>& n) {
 	return m * inverse(n);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 T determinant(const Matrix3x3<T>& m) {
 	return m.determinant();
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> transpose(const Matrix3x3<T>& m) {
 	return Matrix3x3<T>(
 		m.e00, m.e01, m.e02,
@@ -305,7 +307,7 @@ Matrix3x3<T> transpose(const Matrix3x3<T>& m) {
 		m.e20, m.e21, m.e22);
 }
 
-template <typename T> FUNC_DECL
+template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> inverse(const Matrix3x3<T>& m) {
 	T rdet = static_cast<T>(1) / m.determinant();
 
