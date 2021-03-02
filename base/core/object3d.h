@@ -12,240 +12,189 @@
 #include <list>
 #include <string>
 
-#define GLM_FORCE_RADIANS
-#ifdef GLFW_INCLUDE_VULKAN
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#endif
-
-#include <glm/vec3.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/mat4x4.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "../math/matrix3x3.hpp"
+#include "../math/matrix4x4.hpp"
+#include "../math/quaternion.hpp"
+#include "../math/euler_angle.hpp"
+#include "../math/rotation_cast.hpp"
 
 class Object3D {
 public:
-	/* 
+	/** 
 	 * @brief enum class for coordinate system type
 	 */
 	enum class Space {
 		Local, World
 	};
 
-	/*
-	 * @brief enum class for rotate order of an euler angle 
-	 * @detial ABC can be understood as rotate first by A-axis, then B-axis, finally C-axis
-	 */
-	enum class RotateOrder {
-		XYZ, YZX, ZXY, XZY, YXZ, ZYX
-	};
-
-
-	/*
+	/**
 	 * @brief default constructor
 	 */
 	Object3D() = default;
 
-	/*
+	/**
 	 * @brief constructor with specified name
 	 */
 	explicit Object3D(std::string name);
 	
-	/*
+	/**
      * @brief default destructor
      */
 	~Object3D() = default;
 
-	/*
+	/**
 	 * @brief get the name of the object
 	 */
 	std::string getName() const;
 
-	/*
+	/**
 	 * @brief set the name of the object
      */
 	void setName(std::string name);
 
-	/*
+	/**
 	 * @brief get the parent of the object, if no parent return nullptr
 	 */
 	Object3D* getParent() const;
 
-	/*
+	/**
 	 * @brief set the new parent of the object
 	 * @todo maintain the world postion/rotation/scale of the object
 	 */
 	void setParent(Object3D* parent, bool stayInWorld = false);
 
-	/*
+	/**
 	 * @brief get the numbers of child of the object
 	 */
 	uint32_t childCount() const;
 
-	/*
+	/**
 	 * @brief get child of the object by index
 	 */
 	Object3D* getChild(int index) const;
 
-	/*
+	/**
 	 * @brief get all children of the object
      */
 	std::list<Object3D*> getChildren() const;
 
 
-	/*
+	/**
 	 * @brief get the local position of the object
 	 * @return the world/local position of the object
 	 */
-	glm::vec3 getLocalPosition() const;
+	Vector3<float> getLocalPosition() const;
 
-	/*
+	/**
 	 * @brief set the local position of the object
 	 */
-	void setLocalPosition(const glm::vec3& position);
+	void setLocalPosition(const Vector3<float>& position);
 
-	/*
+	/**
 	 * @brief get the world position of the object
 	 */
-	glm::vec3 getWorldPosition() const;
+	Vector3<float> getWorldPosition() const;
 
-	/*
+	/**
 	 * @brief set the world position of the object
 	 */
-	void setWorldPosition(const glm::vec3& position);
+	void setWorldPosition(const Vector3<float>& position);
 
-	/*
+	/**
 	 * @brief translate object with world/local translation
 	 */
-	void translate(const glm::vec3& translation, enum Space space);
+	void translate(const Vector3<float>& translation, enum Space space);
 
-	/*
+	/**
      * @brief get the local rotation of the object in quaternion
      */
-	glm::quat getLocalRotation() const;
+	Quaternion<float> getLocalRotation() const;
 
-	/*
+	/**
 	 * @brief set the local rotation of the object in quaternion
 	 */
-	void setLocalRotation(const glm::quat& rotation);
+	void setLocalRotation(const Quaternion<float>& rotation);
 
-	/*
-	 * @brief get local euler angles of an object by extrinsic rotations
-	 * @todo overcome singularity(atan2) and precision problems
-	 * @see https://blog.csdn.net/hzwwpgmwy/article/details/101547949
+	/**
+	 * @brief get local euler angles of an object by intrinsic rotations
 	 */
-	glm::vec3 getLocalEulerAngles(enum RotateOrder order) const;
+	Vector3<float> getLocalEulerAngles(enum RotateOrder order) const;
 
-	/*
+	/**
 	 * @brief set local euler angles of an object by extrinsic rotations
-	 * @todo overcome singularity and precision problems
-	 * @see https://blog.csdn.net/hzwwpgmwy/article/details/101547949
 	 */
-	void setLocalEulerAngles(const glm::vec3& eulerAngles, enum RotateOrder order);
+	void setLocalEulerAngles(const EulerAngle<float>& e);
 
-	/*
+	/**
 	 * @brief rotate by normalized axis and angle in radians in local space
 	 * @todo add world space rotate support
 	 */
-	void rotate(const glm::vec3& axis, float angle);
+	void rotate(const Vector3<float>& axis, float angle);
 
-	/*
+	/**
 	 * @brief rotate by euler angles and specified rotate order in local space
 	 * @todo add world space rotate support
 	 */
-	void rotate(const glm::vec3& eulerAngles, const enum RotateOrder order);
+	void rotate(const Vector3<float>& eulerAngles);
 
 
-	/*
+	/**
 	 * todo: rotateAround
 	 */
 
-	/*
+	/**
 	 * @brief get local scale of the object
 	 * @return local scale of the object in 3 dimensions
 	 */
-	glm::vec3 getLocalScale() const ;
+	Vector3<float> getLocalScale() const ;
 
-	/*
+	/**
      * @brief set local scale of the object
      */
-	void setLocalScale(const glm::vec3& scale);
+	void setLocalScale(const Vector3<float>& scale);
 
-	/*
+	/**
 	 * @brief get model matrix of the object
 	 */
-	glm::mat4x4 getModelMatrix() const;
+	Matrix4x4<float> getModelMatrix() const;
 
-	/*
+	/**
 	 * @brief get model matrix inverse of the object
 	 */
-	glm::mat4x4 getModelMatrixInverse() const;
+	Matrix4x4<float> getModelMatrixInverse() const;
 
-	/*
+	/**
 	 * @brief print local position info
 	 */
 	void printPosition() const;
 
-	/*
+	/**
 	 * @brief print local rotation info
 	 */
 	void printRotation() const ;
 
-	/*
+	/**
 	 * @brief print local scale info
 	 */
 	void printScale() const;
 
-	/*
-	 * @brief print vec3
-	 */
-	static void print(const glm::vec3& v);
-
-	/*
-	 * @brief print vec3
-	 */
-	static void print(const glm::vec4& v);
-	/*
-	 * @brief print quat
-	 */
-	static void print(const glm::quat& q);
-
-	/*
-	 * @brief print mat3x3
-	 */
-	static void print(const glm::mat3x3& m);
-
-	/*
-	 * @brief print mat4x4
-	 */
-	static void print(const glm::mat4x4& m);
-
-	/*
-	 * @brief transform euler angles to quaternion
-	 */
-	static glm::quat eulerAnglesToQuaternion(const glm::vec3& eulerAngles, enum RotateOrder order);
-
-	/*
-	 * @brief transform quaternion to euler angles
-	 */
-	static glm::vec3 quaternionToEulerAngles(const glm::quat& q, enum RotateOrder order);
-
 protected:
-	/* name of the object */
+	/** name of the object */
 	std::string _name;
-	/* local position of the object */
-	glm::vec3 _localPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-	/* local rotation of the object */
-	glm::quat _localRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-	/* local scale of the object */
-	glm::vec3 _localScale = glm::vec3(1.0f, 1.0f, 1.0f);
-	/* relationship:parent */
+	/** local position of the object */
+	Vector3<float> _position{ 0.0f, 0.0f, 0.0f };
+	/** local rotation of the object */
+	Quaternion<float> _rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
+	/** local scale of the object */
+	Vector3<float> _scale{ 1.0f, 1.0f, 1.0f };
+	/** relationship:parent */
 	Object3D* _parent = nullptr;
-	/* relationship children */
+	/** relationship children */
 	std::list<Object3D*> _children;
 
 private:
-	/* universal uniform id of the object */
+	/** universal uniform id of the object */
 	int _id = uuid++;
-	/* id generator */
+	/** id generator */
 	static inline int uuid = 0;
 };

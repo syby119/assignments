@@ -23,6 +23,12 @@ constexpr T e() {
 	return static_cast<T>(2.71828182845904523536);
 }
 
+/* round error */
+template <typename T>
+constexpr T epsilon() {
+	return static_cast<T>(10) * std::numeric_limits<T>::epsilon();
+}
+
 /* convertion between degrees and radians */
 template <typename T>
 T radian_cast(T deg) {

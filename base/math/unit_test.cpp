@@ -1,5 +1,6 @@
 #include "./print_info.hpp"
 #include "./rotation_cast.hpp"
+#include "./transformation.hpp"
 
 void unitTestQuaternion(bool enable = false) {
 	if (!enable) {
@@ -495,7 +496,6 @@ void unitTestVector4(bool enable = false) {
 		Vector4<float> v(1.0f, 2.0f, 3.0f, 4.0f);
 		print(normalize(v));
 	}
-
 
 	/* dot(u, v) */ {
 		printf("\ndot(u, v)\n");
@@ -1240,6 +1240,7 @@ void unitTestMatrix4x4(bool enable = false) {
 
 		print(inverse(m));
 	}
+
 
 }
 
@@ -2149,6 +2150,89 @@ void unitTestConversion(bool enable = false) {
 	}
 }
 
+void unitTestTransformation(bool enable = false) {
+	/* point_cast(vector3) */ {
+		printf("\npoint_cast(vec3)\n");
+		Vector3<float> v(1.0f, 2.0f, 3.0f);
+		print(point_cast(v));
+	}
+
+	/* point_cast(vector4) */ {
+		printf("\npoint_cast(vec4)\n");
+		Vector4<float> v(1.0f, 2.0f, 3.0f, 4.0f);
+		print(point_cast(v));
+	}
+
+	/* vec_cast(vector3) */ {
+		printf("\nvec_cast(vec3)\n");
+		Vector3<float> v(1.0f, 2.0f, 3.0f);
+		print(vec_cast(v));
+	}
+
+	/* vec_cast(vector3) */ {
+		printf("\nvec_cast(vec4)\n");
+		Vector4<float> v(1.0f, 2.0f, 3.0f, 4.0f);
+		print(vec_cast(v));
+	}
+
+	/* mat3_cast */ {
+		printf("\nmat3_cast\n");
+		Matrix4x4<float> m(
+			1.0f, 2.0f, 3.0f, 4.0f,
+			5.0f, 6.0f, 7.0f, 8.0f,
+			9.0f, 10.0f, 11.0f, 12.0f,
+			13.0f, 14.0f, 15.0f, 16.0f);
+		print(mat3_cast(m));
+	}
+
+	/* mat3_cast */ {
+		printf("\nmat4_cast\n");
+		Matrix3x3<float> m(
+			1.0f, 2.0f, 3.0f,
+			4.0f, 5.0f, 6.0f,
+			7.0f, 8.0f, 9.0f);
+		print(mat4_cast(m));
+	}
+
+	/* translate */ {
+		printf("\ntranslate matrix\n");
+		print(translate(1.0f, 2.0f, 3.0f));
+	}
+
+	/* rotate */ {
+		printf("\nrotate matrix\n");
+		print(rotate(normalize(Vector3<float>(1.0f, 2.0f, 3.0f)), radian_cast(60.0f)));
+	}
+
+	/* scale */ {
+		printf("\nscale matrix\n");
+		print(scale(1.0f, 2.0f, 3.0f));
+	}
+
+	/* lookAt */ {
+		printf("\nlookAt matrix\n");
+		print(lookAt(
+			Vector3<float>(1.0f, 2.0f, -3.0f),
+			Vector3<float>(4.0f, -5.0f, 6.0f), 
+			Vector3<float>(7.0f, 10.0f, 8.0f)));
+	}
+
+	/* ortho */ {
+		printf("\northo matrix\n");
+		print(ortho(-10.0f, 20.0f, -30.0f, 40.0f, 0.1f, 100.0f));
+	}
+
+	/* perspective */ {
+		printf("\nperspective matrix\n");
+		print(perspective(radian_cast(54.0f), 16.0f / 9.0f, 0.1f, 100.0f));
+	}
+
+	/* frustum */ {
+		printf("\nfrustum matrix\n");
+		print(frustum(-10.0f, 20.0f, -30.0f, 40.0f, 0.1f, 100.0f));
+	}
+}
+
 int main() {
 	unitTestQuaternion();
 
@@ -2163,6 +2247,8 @@ int main() {
 	unitTestEulerAngle();
 
 	unitTestConversion();
+
+	unitTestTransformation(true);
 
 	return 0;
 }

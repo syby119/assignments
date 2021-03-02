@@ -243,6 +243,8 @@ void Matrix4x4<T>::inverse() {
 	*this = ::inverse(*this);
 }
 
+
+
 /********************* global function implementation *********************/
 template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator+(const Matrix4x4<T>& m) {

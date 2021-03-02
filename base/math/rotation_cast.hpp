@@ -83,21 +83,21 @@ Matrix4x4<T> mat4_cast(const Vector3<T>& axis, T angle) {
 
 	return Matrix4x4<T>{
 		c + axis.x * axis.x * C,          // m00
-			axis.x* axis.y* C + axis.z * s, // m10
-			axis.x* axis.z* C - axis.y * s, // m20
-			zero,                             // m30
-			axis.x* axis.y* C - axis.z * s, // m01
-			c + axis.y * axis.y * C,          // m11
-			axis.y* axis.z* C + axis.x * s, // m21
-			zero,                             // m31
-			axis.x* axis.z* C + axis.y * s, // m02
-			axis.y* axis.z* C - axis.x * s, // m12
-			c + axis.z * axis.z * C,          // m22
-			zero,                             // m32
-			zero,                             // m03
-			zero,                             // m13
-			zero,                             // m23
-			one,                              // m33
+		axis.x* axis.y* C + axis.z * s,   // m10
+		axis.x* axis.z* C - axis.y * s,   // m20
+		zero,                             // m30
+		axis.x* axis.y* C - axis.z * s,   // m01
+		c + axis.y * axis.y * C,          // m11
+		axis.y* axis.z* C + axis.x * s,   // m21
+		zero,                             // m31
+		axis.x* axis.z* C + axis.y * s,   // m02
+		axis.y* axis.z* C - axis.x * s,   // m12
+		c + axis.z * axis.z * C,          // m22
+		zero,                             // m32
+		zero,                             // m03
+		zero,                             // m13
+		zero,                             // m23
+		one                               // m33
 	};
 }
 
@@ -416,8 +416,8 @@ EulerAngle<T> euler_cast(const Matrix3x3<T>& m, enum RotateOrder order) {
 	constexpr T one = static_cast<T>(1);
 	constexpr T pi_2 = static_cast<T>(0.5) * pi<T>();
 
-	constexpr T upperBound = one - std::numeric_limits<T>::epsilon();
-	constexpr T lowerBound = std::numeric_limits<T>::epsilon() - one;
+	constexpr T upperBound = one - epsilon<T>();
+	constexpr T lowerBound = epsilon<T>() - one;
 
 	switch (order) {
 	case RotateOrder::XYZ:
@@ -474,8 +474,8 @@ EulerAngle<T> euler_cast(const Matrix4x4<T>& m, enum RotateOrder order) {
 	constexpr T one = static_cast<T>(1);
 	constexpr T pi_2 = static_cast<T>(0.5) * pi<T>();
 
-	constexpr T upperBound = one - std::numeric_limits<T>::epsilon();
-	constexpr T lowerBound = std::numeric_limits<T>::epsilon() - one;
+	constexpr T upperBound = one - epsilon<T>();
+	constexpr T lowerBound = epsilon<T>() - one;
 
 	switch (order) {
 	case RotateOrder::XYZ:
@@ -533,8 +533,8 @@ EulerAngle<T> euler_cast(const Quaternion<T>& q, enum RotateOrder order) {
 	constexpr T two = static_cast<T>(2);
 	constexpr T pi_2 = static_cast<T>(0.5) * pi<T>();
 
-	constexpr T upperBound = one - std::numeric_limits<T>::epsilon();
-	constexpr T lowerBound = std::numeric_limits<T>::epsilon() - one;
+	constexpr T upperBound = one - epsilon<T>();
+	constexpr T lowerBound = epsilon<T>() - one;
 
 	switch (order) {
 		case RotateOrder::XYZ: {
