@@ -5,6 +5,7 @@
 #include "./math_util.hpp"
 #include "./vector4.hpp"
 
+namespace gtm {
 template <typename T>
 struct Matrix4x4 {
 public:
@@ -59,7 +60,6 @@ public:
 	FUNC_QUALIFIER void inverse();
 };
 
-
 template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator+(const Matrix4x4<T>& m);
 
@@ -101,9 +101,13 @@ Matrix4x4<T> transpose(const Matrix4x4<T>& m);
 
 template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> inverse(const Matrix4x4<T>& m);
+} // namespace gtm
 
 
-/********************* class function implementation *********************/
+
+/*********************** implementation ***********************/
+namespace gtm {
+//-------------- class function implementation --------------//
 template <typename T> FUNC_QUALIFIER
 Matrix4x4<T>::Matrix4x4() : cols{ } { }
 
@@ -243,9 +247,7 @@ void Matrix4x4<T>::inverse() {
 	*this = ::inverse(*this);
 }
 
-
-
-/********************* global function implementation *********************/
+//-------------- global function implementation --------------//
 template <typename T> FUNC_QUALIFIER
 Matrix4x4<T> operator+(const Matrix4x4<T>& m) {
 	return m;
@@ -387,3 +389,5 @@ Matrix4x4<T> inverse(const Matrix4x4<T>& m) {
 		rdet * (adet * m.e22 - ab00 * m.e20 - ab10 * m.e21)  // m33
 	);
 }
+
+} // namespace gtm

@@ -16,7 +16,6 @@
 #include "../math/matrix4x4.hpp"
 #include "../math/quaternion.hpp"
 #include "../math/euler_angle.hpp"
-#include "../math/rotation_cast.hpp"
 
 class Object3D {
 public:
@@ -35,7 +34,7 @@ public:
 	/**
 	 * @brief constructor with specified name
 	 */
-	explicit Object3D(std::string name);
+	Object3D(const std::string& name);
 	
 	/**
      * @brief default destructor
@@ -50,7 +49,7 @@ public:
 	/**
 	 * @brief set the name of the object
      */
-	void setName(std::string name);
+	void setName(const std::string& name);
 
 	/**
 	 * @brief get the parent of the object, if no parent return nullptr
@@ -78,90 +77,91 @@ public:
      */
 	std::list<Object3D*> getChildren() const;
 
-
 	/**
 	 * @brief get the local position of the object
 	 * @return the world/local position of the object
 	 */
-	Vector3<float> getLocalPosition() const;
+	gtm::Vector3<float> getLocalPosition() const;
 
 	/**
 	 * @brief set the local position of the object
 	 */
-	void setLocalPosition(const Vector3<float>& position);
+	void setLocalPosition(const gtm::Vector3<float>& position);
 
 	/**
 	 * @brief get the world position of the object
 	 */
-	Vector3<float> getWorldPosition() const;
+	gtm::Vector3<float> getWorldPosition() const;
 
 	/**
 	 * @brief set the world position of the object
 	 */
-	void setWorldPosition(const Vector3<float>& position);
+	void setWorldPosition(const gtm::Vector3<float>& position);
 
 	/**
 	 * @brief translate object with world/local translation
 	 */
-	void translate(const Vector3<float>& translation, enum Space space);
+	void translate(const gtm::Vector3<float>& translation, enum Space space);
 
 	/**
      * @brief get the local rotation of the object in quaternion
      */
-	Quaternion<float> getLocalRotation() const;
+	gtm::Quaternion<float> getLocalRotation() const;
 
 	/**
 	 * @brief set the local rotation of the object in quaternion
 	 */
-	void setLocalRotation(const Quaternion<float>& rotation);
+	void setLocalRotation(const gtm::Quaternion<float>& rotation);
 
 	/**
 	 * @brief get local euler angles of an object by intrinsic rotations
 	 */
-	Vector3<float> getLocalEulerAngles(enum RotateOrder order) const;
+	gtm::EulerAngle<float> getLocalEulerAngle(enum gtm::RotateOrder order) const;
 
 	/**
 	 * @brief set local euler angles of an object by extrinsic rotations
 	 */
-	void setLocalEulerAngles(const EulerAngle<float>& e);
+	void setLocalEulerAngle(const gtm::EulerAngle<float>& e);
 
 	/**
 	 * @brief rotate by normalized axis and angle in radians in local space
 	 * @todo add world space rotate support
 	 */
-	void rotate(const Vector3<float>& axis, float angle);
+	void rotate(const gtm::Vector3<float>& axis, float angle);
 
 	/**
 	 * @brief rotate by euler angles and specified rotate order in local space
 	 * @todo add world space rotate support
 	 */
-	void rotate(const Vector3<float>& eulerAngles);
+	void rotate(const gtm::Vector3<float>& eulerAngles);
 
 
 	/**
 	 * todo: rotateAround
 	 */
+	void rotateAround(
+		const gtm::Vector3<float>& origin, const gtm::Vector3<float>& axis, float angle);
 
 	/**
 	 * @brief get local scale of the object
 	 * @return local scale of the object in 3 dimensions
 	 */
-	Vector3<float> getLocalScale() const ;
+	gtm::Vector3<float> getLocalScale() const ;
 
 	/**
      * @brief set local scale of the object
      */
-	void setLocalScale(const Vector3<float>& scale);
+	void setLocalScale(const gtm::Vector3<float>& scale);
 
 	/**
 	 * @brief get model matrix of the object
 	 */
-	Matrix4x4<float> getModelMatrix() const;
+	gtm::Matrix4x4<float> getModelMatrix() const;
 
 	/**
 	 * @brief get model matrix inverse of the object
 	 */
-	Matrix4x4<float> getModelMatrixInverse() const;
+	gtm::Matrix4x4<float> getModelMatrixInverse() const;
 
 	/**
 	 * @brief print local position info
@@ -182,11 +182,11 @@ protected:
 	/** name of the object */
 	std::string _name;
 	/** local position of the object */
-	Vector3<float> _position{ 0.0f, 0.0f, 0.0f };
+	gtm::Vector3<float> _position{ 0.0f, 0.0f, 0.0f };
 	/** local rotation of the object */
-	Quaternion<float> _rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
+	gtm::Quaternion<float> _rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
 	/** local scale of the object */
-	Vector3<float> _scale{ 1.0f, 1.0f, 1.0f };
+	gtm::Vector3<float> _scale{ 1.0f, 1.0f, 1.0f };
 	/** relationship:parent */
 	Object3D* _parent = nullptr;
 	/** relationship children */

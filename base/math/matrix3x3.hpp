@@ -5,6 +5,7 @@
 #include "./math_util.hpp"
 #include "./vector3.hpp"
 
+namespace gtm {
 template <typename T>
 struct Matrix3x3 {
 public:
@@ -91,8 +92,11 @@ Matrix3x3<T> operator/(const T c, const Matrix3x3<T>& m);
 
 template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator*(const Matrix3x3<T>& m, const Matrix3x3<T>& n);
+} // namespace gtm
 
-/********************* class function implementation *********************/
+/*********************** implementation ***********************/
+namespace gtm {
+//-------------- class function implementation --------------//
 template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>::Matrix3x3(): cols{ } { }
 
@@ -118,8 +122,6 @@ Matrix3x3<T>::Matrix3x3(
 template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>::Matrix3x3(const Matrix3x3<T>& m)
 	: cols{ m.cols[0], m.cols[1], m.cols[2] } { }
-
-
 
 template <typename T> FUNC_QUALIFIER
 Matrix3x3<T>::~Matrix3x3() { }
@@ -224,8 +226,7 @@ void Matrix3x3<T>::inverse() {
 	e02 = d20, e12 = d21, e22 = d22;
 }
 
-
-/********************* global function implementation *********************/
+//-------------- global function implementation --------------//
 template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> operator+(const Matrix3x3<T>& m) {
 	return m;
@@ -323,3 +324,4 @@ Matrix3x3<T> inverse(const Matrix3x3<T>& m) {
 		rdet * (m.e00 * m.e11 - m.e10 * m.e01)  // m.e22
 	);
 }
+} // namespace gtm

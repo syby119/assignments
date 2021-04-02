@@ -2,6 +2,7 @@
 
 #include "./math_util.hpp"
 
+namespace gtm {
 template <typename T>
 struct Quaternion {
 public:
@@ -60,8 +61,11 @@ Quaternion<T> conjugate(const Quaternion<T>& q);
 template <typename T> FUNC_QUALIFIER
 Quaternion<T> inverse(const Quaternion<T>& q);
 
+} // namespace gtm
 
-/********************* class function implementation *********************/
+/************************** implementation **************************/
+namespace gtm {
+//------------------ class function implementation ------------------//
 template <typename T> FUNC_QUALIFIER
 Quaternion<T>::Quaternion() : w(1), x(0), y(0), z(0) { }
 
@@ -120,7 +124,7 @@ Quaternion<T>& Quaternion<T>::operator/=(const Quaternion& q) {
     return *this = *this * ::inverse(q);
 }
 
-/********************* global function implementation *********************/
+//------------------ global function implementation ------------------//
 template <typename T> FUNC_QUALIFIER
 Quaternion<T> operator+(const Quaternion<T>& q) {
     return q;
@@ -190,3 +194,5 @@ Quaternion<T> inverse(const Quaternion<T>& q) {
     T rnorm = static_cast<T>(1) / (q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
     return Quaternion<T>(rnorm * q.w, -rnorm * q.x, -rnorm * q.y, -rnorm * q.z);
 }
+
+} // namespace gtm

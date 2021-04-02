@@ -12,11 +12,14 @@
 #include <iostream>
 
 #include "object3d.h"
+#include "../math/print_info.hpp"
+#include "../math/rotation_cast.hpp"
+#include "../math/transformation.hpp"
 
 /*
  * @brief constructor with specified name
  */
-Object3D::Object3D(std::string name): _name(name) { }
+Object3D::Object3D(const std::string& name): _name(name) { }
 
 
 /*
@@ -31,7 +34,7 @@ std::string Object3D::getName() const {
 /*
  * @brief set the name of the object
  */
-void Object3D::setName(std::string name) {
+void Object3D::setName(const std::string& name) {
 	_name = name;
 }
 
@@ -109,10 +112,10 @@ std::list<Object3D*> Object3D::getChildren() const {
 
 /*
  * @brief get the local position of the object
- * @return the world/local position of the object
+ * @return the local position of the object
  */
-Vector3<float> Object3D::getLocalPosition() const {
-	return _localPosition;
+gtm::Vector3<float> Object3D::getLocalPosition() const {
+	return _position;
 }
 
 
@@ -120,8 +123,8 @@ Vector3<float> Object3D::getLocalPosition() const {
  * @brief set the local position of the object
  * @param postion local position corresponding to parent
  */
-void Object3D::setLocalPosition(const Vector3<float>& position) {
-	_localPosition = position;
+void Object3D::setLocalPosition(const gtm::Vector3<float>& position) {
+	_position = position;
 }
 
 
@@ -129,10 +132,8 @@ void Object3D::setLocalPosition(const Vector3<float>& position) {
  * @brief get the world position of the object
  * @return the world position of the object
  */
-Vector3<float> Object3D::getWorldPosition() const {
-	// the result of Vector4<float> will be (x, y, z, 1.0f)
-	// Vector3<float> use the x, y, z of the Vector4<float> to consturct self
-	return getModelMatrix() * Vector4<float>(_localPosition, 1.0f);
+gtm::Vector3<float> Object3D::getWorldPosition() const {
+	return gtm::point_cast(getModelMatrix() * gtm::point_cast(_position));
 }
 
 
@@ -140,8 +141,8 @@ Vector3<float> Object3D::getWorldPosition() const {
  * @brief set the world position of the object
  * @param position world position of 3 dimension
  */
-void Object3D::setWorldPosition(const Vector3<float>& position) {
-	_localPosition = Vector3<float>(getModelMatrixInverse() * Vector4<float>(position, 1.0f));
+void Object3D::setWorldPosition(const gtm::Vector3<float>& position) {
+	_position = gtm::point_cast(getModelMatrixInverse() * gtm::point_cast(_position));
 }
 
 
@@ -150,11 +151,11 @@ void Object3D::setWorldPosition(const Vector3<float>& position) {
  * @param translation 3d vector of the movement in world/local space
  * @param space world/local space of the translation
  */
-void Object3D::translate(const Vector3<float>& translation, enum Space space) {
+void Object3D::translate(const gtm::Vector3<float>& translation, enum Space space) {
 	if (space == Space::Local) {
-		_localPosition += translation;
+		_position += translation;
 	} else {
-		_localPosition += Vector3<float>(getModelMatrixInverse() * Vector4<float>(translation, 0.0f));
+		_position += gtm::point_cast(getModelMatrixInverse() * gtm::point_cast(translation)); ???
 	}
 }
 
@@ -163,8 +164,8 @@ void Object3D::translate(const Vector3<float>& translation, enum Space space) {
  * @brief get the local rotation of the object in quaternion
  * @return the local rotation of the object in quaternion
  */
-Quaternion<float> Object3D::getLocalRotation() const {
-	return _localRotation;
+gtm::Quaternion<float> Object3D::getLocalRotation() const {
+	return _rotation;
 }
 
 
@@ -172,39 +173,29 @@ Quaternion<float> Object3D::getLocalRotation() const {
  * @brief set the local rotation of the object in quaternion
  * @return the local rotation of the object in quaternion
  */
-void Object3D::setLocalRotation(const Quaternion<float>& rotation) {
-	_localRotation = rotation;
+void Object3D::setLocalRotation(const gtm::Quaternion<float>& rotation) {
+	_rotation = rotation;
 }
 
 
 /*
- * @brief get local euler angles of an object by extrinsic rotations
- * @param order rotate order of the euler angle
- * @return Vector3<float>(pitch, yaw, roll)
- *         pitch vec3.x rotate angle around x-axis
- *         yaw   vec3.y rotate angle around y-axis
- *         roll  vec3.z rotate angle around z-axis
- * @todo overcome singularity(atan2) and precision problems
- * @see https://blog.csdn.net/hzwwpgmwy/article/details/101547949
+ * @brief get local euler angles of an object by intrinsic rotations
+ * @return the local euler angle transformed from quaternion
  */
-Vector3<float> Object3D::getLocalEulerAngles(enum RotateOrder order) const {
-	return quaternionToEulerAngles(_localRotation, order);
+gtm::EulerAngle<float> Object3D::getLocalEulerAngle(enum gtm::RotateOrder order) const {
+	return gtm::euler_cast(_rotation, order);
 }
 
 
 /*
- * @brief set local euler angles of an object by extrinsic rotations
- * @param Vector3<float>(pitch, yaw, roll)
- *         pitch vec3.x rotate angle around x-axis
- *         yaw   vec3.y rotate angle around y-axis
- *         roll  vec3.z rotate angle around z-axis
+ * @brief set local euler angles of an object by intrinsic rotations
  * @param order rotate order of the euler angle
  * @todo overcome singularity(atan2) and precision problems
  * @see https://blog.csdn.net/hzwwpgmwy/article/details/101547949
  */
-void Object3D::setLocalEulerAngles(const Vector3<float>& eulerAngles, enum RotateOrder order) {
-	Quaternion<float> q = eulerAnglesToQuaternion(eulerAngles, order);
-	_localRotation = q * _localRotation;
+void Object3D::setLocalEulerAngle(const gtm::EulerAngle<float>& eulerAngles) {
+	gtm::Quaternion<float> q = gtm::quat_cast(eulerAngles);
+	_rotation = q * _rotation;
 }
 
 
@@ -215,7 +206,7 @@ void Object3D::setLocalEulerAngles(const Vector3<float>& eulerAngles, enum Rotat
  * @todo add world space rotate support
  */
 void Object3D::rotate(const Vector3<float>& axis, float angle) {
-	_localRotation = glm::angleAxis(angle, axis) * _localRotation;
+	_rotation = glm::angleAxis(angle, axis) * _localRotation;
 }
 
 
@@ -228,8 +219,8 @@ void Object3D::rotate(const Vector3<float>& axis, float angle) {
  * @param order rotate order
  * @todo add world space rotate support
  */
-void Object3D::rotate(const Vector3<float>& eulerAngles, const enum RotateOrder order) {
-	_localRotation = eulerAnglesToQuaternion(eulerAngles, order) * _localRotation;
+void Object3D::rotate(const gtm::Vector3<float>& eulerAngle) {
+	_rotation = eulerAnglesToQuaternion(eulerAngle, order) * _localRotation;
 }
 
 
@@ -237,7 +228,7 @@ void Object3D::rotate(const Vector3<float>& eulerAngles, const enum RotateOrder 
  * @brief get local scale of the object
  * @return the local scale of the object in Vector3<float>
  */
-Vector3<float> Object3D::getLocalScale() const {
+gtm::Vector3<float> Object3D::getLocalScale() const {
 		return _localScale;
 }
 
@@ -246,8 +237,8 @@ Vector3<float> Object3D::getLocalScale() const {
  * @brief set local scale of the object
  * @param scale local scale of the object
  */
-void Object3D::setLocalScale(const Vector3<float>& scale) {
-	_localScale = scale;
+void Object3D::setLocalScale(const gtm::Vector3<float>& scale) {
+	_scale = scale;
 }
 
 
@@ -255,13 +246,13 @@ void Object3D::setLocalScale(const Vector3<float>& scale) {
  * @brief get model matrix of the object
  * @return model matrix to transform the object from local to world space
  */
-Matrix4x4<float> Object3D::getModelMatrix() const {
-	Matrix4x4<float> m(1.0f);
+gtm::Matrix4x4<float> Object3D::getModelMatrix() const {
+	gtm::Matrix4x4<float> m(1.0f);
 
 	for (Object3D* obj = const_cast<Object3D*>(this); obj; obj = obj->_parent) {
-		m = glm::scale(m, obj->_localScale);
-		m = glm::mat4_cast(obj->_localRotation) * m;
-		m = glm::translate(m, obj->_localPosition);
+		m = gtm::translate(obj->_position) * \
+			gtm::mat4_cast(obj->_rotation) * \
+			gtm::scale(obj->_scale) * m;
 	}
 	
 	return m;
@@ -272,8 +263,8 @@ Matrix4x4<float> Object3D::getModelMatrix() const {
  * @brief get model matrix inverse of the object
  * @return model matrix inverse to transform the object from world to local space
  */
-glm::mat4x4 Object3D::getModelMatrixInverse() const {
-	return glm::inverse(getModelMatrix());
+gtm::Matrix4x4<float> Object3D::getModelMatrixInverse() const {
+	return gtm::inverse(getModelMatrix());
 }
 
 
@@ -282,7 +273,7 @@ glm::mat4x4 Object3D::getModelMatrixInverse() const {
  */
 void Object3D::printPosition() const {
 	std::cout << _name << ": position";
-	print(_localPosition);
+	gtm::print(_localPosition);
 	std::cout << std::endl;
 }
 

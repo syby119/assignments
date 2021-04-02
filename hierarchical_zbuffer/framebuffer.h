@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdint.h>
 #include <glad/glad.h>
 
 #include "shader.h"
@@ -17,11 +16,13 @@ public:
 
 	void setPixel(int x, int y, const glm::vec3& color);
 
-	void render() const;
+	void display() const;
+
 private:
-	GLuint _texture = 0;
-	uint8_t* _pixels = nullptr;
+	unsigned char* _pixels = nullptr;
 	int _width = 0, _height = 0;
+
+	GLuint _texture = 0;
 
 	GLuint _vao = 0, _vbo = 0, _ebo = 0;
 
@@ -40,9 +41,9 @@ private:
 
 	Shader* _shader = nullptr;
 
-	void _initQuad();
+	void initQuad();
 
-	void _initShader();
+	void initShader();
 
-	void _initTexture();
+	void initTexture();
 };

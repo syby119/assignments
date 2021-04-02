@@ -98,7 +98,7 @@ void Shader::setVec3(const std::string& name, const glm::vec3& v3) const {
  * @param name name of the variable
  * @param v4 vec4 to be pass to shader
  */
-void Shader::setVec4(const std::string& name, const glm::vec3& v4) const {
+void Shader::setVec4(const std::string& name, const glm::vec4& v4) const {
     glUniform4fv(glGetUniformLocation(_id, name.c_str()), 1, &v4[0]);
 }
 

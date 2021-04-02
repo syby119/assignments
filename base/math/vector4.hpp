@@ -2,6 +2,7 @@
 
 #include "./math_util.hpp"
 
+namespace gtm {
 template <typename T>
 struct Vector4 {
 public:
@@ -17,19 +18,19 @@ public:
 	FUNC_QUALIFIER Vector4(const Vector4<T>& v);
 	FUNC_QUALIFIER ~Vector4();
 
-	Vector4& operator=(const Vector4& v);
+	FUNC_QUALIFIER Vector4& operator=(const Vector4& v);
 
-	T& operator[](const int i);
-	const T& operator[](const int i) const;
+	FUNC_QUALIFIER T& operator[](const int i);
+	FUNC_QUALIFIER const T& operator[](const int i) const;
 
-	Vector4& operator+=(const Vector4& v);
-	Vector4& operator-=(const Vector4& v);
-	Vector4& operator*=(const T c);
-	Vector4& operator/=(const T c);
+	FUNC_QUALIFIER Vector4& operator+=(const Vector4& v);
+	FUNC_QUALIFIER Vector4& operator-=(const Vector4& v);
+	FUNC_QUALIFIER Vector4& operator*=(const T c);
+	FUNC_QUALIFIER Vector4& operator/=(const T c);
 
-	T length() const;
-	void normalize();
-	T dot(const Vector4& v) const;
+	FUNC_QUALIFIER T length() const;
+	FUNC_QUALIFIER void normalize();
+	FUNC_QUALIFIER T dot(const Vector4& v) const;
 };
 
 
@@ -57,8 +58,11 @@ Vector4<T> operator/(const Vector4<T>& v, const T c);
 template <typename T> FUNC_QUALIFIER
 Vector4<T> normalize(const Vector4<T>& v);
 
+} // namespace gtm
 
-/********************* class function implementation *********************/
+/*********************** implementation ***********************/
+namespace gtm {
+//--------------- class function implementation ---------------//
 template <typename T> FUNC_QUALIFIER
 Vector4<T>::Vector4() : x(0), y(0), z(0), w(0) { }
 
@@ -128,7 +132,7 @@ T Vector4<T>::dot(const Vector4<T>& v) const {
 	return x * v.x + y * v.y + z * v.z + w * v.w;
 }
 
-/********************* global function implementation *********************/
+//--------------- global function implementation ---------------//
 template <typename T> FUNC_QUALIFIER
 Vector4<T> operator+(const Vector4<T>& v) {
 	return v;
@@ -176,3 +180,4 @@ Vector4<T> normalize(const Vector4<T>& v) {
 	const T rn = one / sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 	return Vector4<T>(v.x * rn, v.y * rn, v.z * rn, v.w * rn);
 }
+} // namespace gtm

@@ -5,79 +5,82 @@
 #include "./matrix3x3.hpp"
 #include "./matrix4x4.hpp"
 
+namespace gtm {
 template <typename T> FUNC_QUALIFIER
-Vector4<T> point_cast(const Vector3<T>& v);
+	Vector4<T> point_cast(const Vector3<T>& v);
 
 template <typename T> FUNC_QUALIFIER
-Vector3<T> point_cast(const Vector4<T>& v);
+	Vector3<T> point_cast(const Vector4<T>& v);
 
 template <typename T> FUNC_QUALIFIER
-Vector4<T> vec_cast(const Vector3<T>& v);
+	Vector4<T> vec_cast(const Vector3<T>& v);
 
 template <typename T> FUNC_QUALIFIER
-Vector3<T> vec_cast(const Vector4<T>& v);
+	Vector3<T> vec_cast(const Vector4<T>& v);
 
 template <typename T> FUNC_QUALIFIER
-Matrix3x3<T> mat3_cast(const Matrix4x4<T>& m);
+	Matrix3x3<T> mat3_cast(const Matrix4x4<T>& m);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> mat4_cast(const Matrix3x3<T>& m);
+	Matrix4x4<T> mat4_cast(const Matrix3x3<T>& m);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> translate(T x, T y, T z);
+	Matrix4x4<T> translate(T x, T y, T z);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> translate(const Vector3<T>& v);
+	Matrix4x4<T> translate(const Vector3<T>& v);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> rotate(const Vector3<T>& axis, T angle);
+	Matrix4x4<T> rotate(const Vector3<T>& axis, T angle);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> scale(T sx, T sy, T sz);
+	Matrix4x4<T> scale(T sx, T sy, T sz);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> scale(const Vector3<T>& s);
+	Matrix4x4<T> scale(const Vector3<T>& s);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> lookAt(
-	const Vector3<T>& position, 
-	const Vector3<T>& target, 
-	const Vector3<T>& up);
+	Matrix4x4<T> lookAt(
+		const Vector3<T>& position,
+		const Vector3<T>& target,
+		const Vector3<T>& up);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> ortho(T left, T right, T bottom, T top, T zNear, T zFar);
+	Matrix4x4<T> ortho(T left, T right, T bottom, T top, T zNear, T zFar);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> perspective(T fovy, T aspect, T zNear, T zFar);
+	Matrix4x4<T> perspective(T fovy, T aspect, T zNear, T zFar);
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> frustum(T left, T right, T bottom, T top, T zNear, T zFar);
+	Matrix4x4<T> frustum(T left, T right, T bottom, T top, T zNear, T zFar);
+}
+
 
 /******************* implementation *******************/
-
+namespace gtm {
 template <typename T> FUNC_QUALIFIER
-Vector3<T> point_cast(const Vector4<T>& v) {
+	Vector3<T> point_cast(const Vector4<T>& v) {
 	const T rw = static_cast<T>(1) / v.w;
 	return { rw * v.x, rw * v.y, rw * v.z };
 }
 
 template <typename T> FUNC_QUALIFIER
-Vector4<T> point_cast(const Vector3<T>& v) {
+	Vector4<T> point_cast(const Vector3<T>& v) {
 	return { v.x, v.y, v.z, static_cast<T>(1) };
 }
 
 template <typename T> FUNC_QUALIFIER
-Vector4<T> vec_cast(const Vector3<T>& v) {
+	Vector4<T> vec_cast(const Vector3<T>& v) {
 	return { v.x, v.y, v.z, static_cast<T>(0) };
 }
 
 template <typename T> FUNC_QUALIFIER
-Vector3<T> vec_cast(const Vector4<T>& v) {
+	Vector3<T> vec_cast(const Vector4<T>& v) {
 	return { v.x, v.y, v.z };
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix3x3<T> mat3_cast(const Matrix4x4<T>& m) {
+	Matrix3x3<T> mat3_cast(const Matrix4x4<T>& m) {
 	return Matrix3x3<T> {
 		m.e00, m.e10, m.e20,
 		m.e01, m.e11, m.e21,
@@ -86,7 +89,7 @@ Matrix3x3<T> mat3_cast(const Matrix4x4<T>& m) {
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> mat4_cast(const Matrix3x3<T>& m) {
+	Matrix4x4<T> mat4_cast(const Matrix3x3<T>& m) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T one = static_cast<T>(1);
 
@@ -99,7 +102,7 @@ Matrix4x4<T> mat4_cast(const Matrix3x3<T>& m) {
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> translate(T x, T y, T z) {
+	Matrix4x4<T> translate(T x, T y, T z) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T one = static_cast<T>(1);
 
@@ -112,7 +115,7 @@ Matrix4x4<T> translate(T x, T y, T z) {
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> translate(const Vector3<T>& v) {
+	Matrix4x4<T> translate(const Vector3<T>& v) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T one = static_cast<T>(1);
 
@@ -125,7 +128,7 @@ Matrix4x4<T> translate(const Vector3<T>& v) {
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> rotate(const Vector3<T>& axis, T angle) {
+	Matrix4x4<T> rotate(const Vector3<T>& axis, T angle) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T one = static_cast<T>(1);
 
@@ -154,7 +157,7 @@ Matrix4x4<T> rotate(const Vector3<T>& axis, T angle) {
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> scale(T sx, T sy, T sz) {
+	Matrix4x4<T> scale(T sx, T sy, T sz) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T one = static_cast<T>(1);
 
@@ -167,7 +170,7 @@ Matrix4x4<T> scale(T sx, T sy, T sz) {
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> scale(const Vector3<T>& s) {
+	Matrix4x4<T> scale(const Vector3<T>& s) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T one = static_cast<T>(1);
 
@@ -180,10 +183,10 @@ Matrix4x4<T> scale(const Vector3<T>& s) {
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> lookAt(
-	const Vector3<T>& position,
-	const Vector3<T>& target,
-	const Vector3<T>& up) {
+	Matrix4x4<T> lookAt(
+		const Vector3<T>& position,
+		const Vector3<T>& target,
+		const Vector3<T>& up) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T one = static_cast<T>(1);
 
@@ -192,20 +195,20 @@ Matrix4x4<T> lookAt(
 	const Vector3<T> yAxis = cross(zAxis, xAxis);
 
 	return Matrix4x4<T> {
-		              xAxis.x,               yAxis.x,               zAxis.x, zero,
-		              xAxis.y,               yAxis.y,               zAxis.y, zero,
-		              xAxis.z,               yAxis.z,               zAxis.z, zero,
+		             xAxis.x,                yAxis.x,               zAxis.x, zero,
+		             xAxis.y,                yAxis.y,               zAxis.y, zero,
+		             xAxis.z,                yAxis.z,               zAxis.z, zero,
 		-dot(position, xAxis), -dot(position, yAxis), -dot(position, zAxis),  one
 	};
 }
 
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> ortho(T left, T right, T bottom, T top, T zNear, T zFar) {
+	Matrix4x4<T> ortho(T left, T right, T bottom, T top, T zNear, T zFar) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T one = static_cast<T>(1);
 	constexpr T two = static_cast<T>(2);
-	
+
 	const T rRightMinusLeft = one / (right - left);
 	const T rTopMinusBottom = one / (top - bottom);
 	const T rNearMinusFar = one / (zNear - zFar);
@@ -215,31 +218,31 @@ Matrix4x4<T> ortho(T left, T right, T bottom, T top, T zNear, T zFar) {
 		zero, two * rTopMinusBottom, zero, zero,
 		zero, zero, two * rNearMinusFar, zero,
 		-(right + left) * rRightMinusLeft, \
-		-(top + bottom) * rTopMinusBottom, \
-		(zNear + zFar) * rNearMinusFar, one
+		- (top + bottom) * rTopMinusBottom, \
+		(zNear + zFar)* rNearMinusFar, one
 	};
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> perspective(T fovy, T aspect, T zNear, T zFar) {
+	Matrix4x4<T> perspective(T fovy, T aspect, T zNear, T zFar) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T oneHalf = static_cast<T>(0.5);
 	constexpr T one = static_cast<T>(1);
 	constexpr T two = static_cast<T>(2);
 
-	 const T rt = one / tan(oneHalf * fovy);
-	 const T rdz = one / (zNear - zFar);
+	const T rt = one / tan(oneHalf * fovy);
+	const T rdz = one / (zNear - zFar);
 
 	return Matrix4x4<T> {
 		rt / aspect, zero,                     zero, zero,
-		zero,          rt,                     zero, zero,
-		zero,        zero,     (zNear + zFar) * rdz, -one,
-		zero,        zero, two * zNear * zFar * rdz, zero
+		       zero,   rt,                     zero, zero,
+		       zero, zero,     (zNear + zFar) * rdz, -one,
+		       zero, zero, two * zNear * zFar * rdz, zero
 	};
 }
 
 template <typename T> FUNC_QUALIFIER
-Matrix4x4<T> frustum(T left, T right, T bottom, T top, T zNear, T zFar) {
+	Matrix4x4<T> frustum(T left, T right, T bottom, T top, T zNear, T zFar) {
 	constexpr T zero = static_cast<T>(0);
 	constexpr T one = static_cast<T>(1);
 	constexpr T two = static_cast<T>(2);
@@ -249,7 +252,7 @@ Matrix4x4<T> frustum(T left, T right, T bottom, T top, T zNear, T zFar) {
 	const T rNearMinusFar = one / (zNear - zFar);
 
 	return Matrix4x4<T> {
-		two * zNear * rRightMinusLeft, zero, zero, zero,
+		two* zNear * rRightMinusLeft, zero, zero, zero,
 		zero, two * zNear * rTopMinusBottom, zero, zero,
 		(right + left) * rRightMinusLeft, \
 		(top + bottom) * rTopMinusBottom, \
@@ -257,3 +260,5 @@ Matrix4x4<T> frustum(T left, T right, T bottom, T top, T zNear, T zFar) {
 		zero, zero, two * zNear * zFar * rNearMinusFar, zero
 	};
 }
+
+} // namespace gtm

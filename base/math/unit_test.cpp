@@ -2,6 +2,8 @@
 #include "./rotation_cast.hpp"
 #include "./transformation.hpp"
 
+using namespace gtm;
+
 void unitTestQuaternion(bool enable = false) {
 	if (!enable) {
 		return;
@@ -2234,19 +2236,19 @@ void unitTestTransformation(bool enable = false) {
 }
 
 int main() {
-	unitTestQuaternion();
+	unitTestQuaternion(true);
 
-	unitTestVector3();
+	unitTestVector3(true);
 
-	unitTestVector4();
+	unitTestVector4(true);
 	
-	unitTestMatrix3x3();
+	unitTestMatrix3x3(true);
 
-	unitTestMatrix4x4();
+	unitTestMatrix4x4(true);
 
-	unitTestEulerAngle();
+	unitTestEulerAngle(true);
 
-	unitTestConversion();
+	unitTestConversion(true);
 
 	unitTestTransformation(true);
 

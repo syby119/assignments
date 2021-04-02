@@ -6,6 +6,7 @@
 #include "./quaternion.hpp"
 #include "./euler_angle.hpp"
 
+namespace gtm {
 template <typename T> FUNC_QUALIFIER
 Matrix3x3<T> mat3_cast(const Vector3<T>& axis, T angle);
 
@@ -626,3 +627,5 @@ EulerAngle<T> euler_cast(const Quaternion<T>& q, enum RotateOrder order) {
 			return { }; // suppress warning C4715 in Visual Studio 
 	}
 }
+
+} // namespace gtm

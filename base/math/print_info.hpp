@@ -9,6 +9,8 @@
 #include "./matrix3x3.hpp"
 #include "./matrix4x4.hpp"
 
+
+namespace gtm {
 template <typename T> FUNC_QUALIFIER
 void print(const Vector3<T>& v) {
     printf("(%f, %f, %f)\n", v.x, v.y, v.z);
@@ -66,3 +68,5 @@ void print(const Matrix4x4<T>& m) {
     printf("%f %f %f %f\n", m[0][2], m[1][2], m[2][2], m[3][2]);
     printf("%f %f %f %f\n", m[0][3], m[1][3], m[2][3], m[3][3]);
 }
+
+} // namespace gtm

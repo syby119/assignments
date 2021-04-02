@@ -2,6 +2,7 @@
 
 #include "./math_util.hpp"
 
+namespace gtm {
 template <typename T>
 struct Vector3 {
 public:
@@ -17,20 +18,20 @@ public:
 	FUNC_QUALIFIER Vector3(const Vector3<T>& v);
 	FUNC_QUALIFIER ~Vector3();
 
-	Vector3& operator=(const Vector3& v);
+	FUNC_QUALIFIER Vector3& operator=(const Vector3& v);
 
-	T& operator[](const int i);
-	const T& operator[](const int i) const;
+	FUNC_QUALIFIER T& operator[](const int i);
+	FUNC_QUALIFIER const T& operator[](const int i) const;
 
-	Vector3& operator+=(const Vector3& v);
-	Vector3& operator-=(const Vector3& v);
-	Vector3& operator*=(const T c);
-	Vector3& operator/=(const T c);
+	FUNC_QUALIFIER Vector3& operator+=(const Vector3& v);
+	FUNC_QUALIFIER Vector3& operator-=(const Vector3& v);
+	FUNC_QUALIFIER Vector3& operator*=(const T c);
+	FUNC_QUALIFIER Vector3& operator/=(const T c);
 
-	T length() const;
-	void normalize();
-	T dot(const Vector3& v) const;
-	Vector3<T> cross(const Vector3& v) const;
+	FUNC_QUALIFIER T length() const;
+	FUNC_QUALIFIER void normalize();
+	FUNC_QUALIFIER T dot(const Vector3& v) const;
+	FUNC_QUALIFIER Vector3<T> cross(const Vector3& v) const;
 };
 
 
@@ -64,8 +65,11 @@ T dot(const Vector3<T>& u, const Vector3<T>& v);
 template <typename T> FUNC_QUALIFIER
 Vector3<T> cross(const Vector3<T>& u, const Vector3<T>& v);
 
+} // namespace gtm
 
-/********************* class function implementation *********************/
+/*********************** implementation ************************/
+namespace gtm {
+//--------------- class function implementation ---------------//
 template <typename T> FUNC_QUALIFIER
 Vector3<T>::Vector3() : x(0), y(0), z(0) { }
 
@@ -79,7 +83,7 @@ template <typename T> FUNC_QUALIFIER
 Vector3<T>::~Vector3() { }
 
 template <typename T> FUNC_QUALIFIER
-Vector3<T>& Vector3<T>::operator=(const Vector3& v) {
+Vector3<T>& Vector3<T>::operator=(const Vector3<T>& v) {
 	x = v.x, y = v.y, z = v.z;
 	return *this;
 }
@@ -95,13 +99,13 @@ const T& Vector3<T>::operator[](const int i) const {
 }
 
 template <typename T> FUNC_QUALIFIER
-Vector3<T>& Vector3<T>::operator+=(const Vector3& v) {
+Vector3<T>& Vector3<T>::operator+=(const Vector3<T>& v) {
 	x += v.x, y += v.y, z += v.z;
 	return *this;
 }
 
 template <typename T> FUNC_QUALIFIER
-Vector3<T>& Vector3<T>::operator-=(const Vector3& v) {
+Vector3<T>& Vector3<T>::operator-=(const Vector3<T>& v) {
 	x -= v.x, y -= v.y, z -= v.z;
 	return *this;
 }
@@ -140,7 +144,8 @@ Vector3<T> Vector3<T>::cross(const Vector3<T>& v) const {
 	return Vector3<T>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 }
 
-/********************* global function implementation *********************/
+
+//--------------- global function implementation ---------------//
 template <typename T> FUNC_QUALIFIER
 Vector3<T> operator+(const Vector3<T>& v) {
 	return v;
@@ -192,3 +197,5 @@ template <typename T> FUNC_QUALIFIER
 Vector3<T> cross(const Vector3<T>& u, const Vector3<T>& v) {
 	return Vector3<T>(u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z, u.x * v.y - u.y * v.x);
 }
+
+} // namespace gtm

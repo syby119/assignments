@@ -68,7 +68,7 @@ public:
     /*
      * @brief set vec2 uniform variable to shader
      */
-    void setVec4(const std::string& name, const glm::vec3& v4) const;
+    void setVec4(const std::string& name, const glm::vec4& v4) const;
 
     /*
      * @brief set vec2 uniform variable to shader

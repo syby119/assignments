@@ -12,14 +12,15 @@
 #define FUNC_QUALIFIER
 #endif
 
+namespace gtm {
 /* constant values */
 template <typename T>
 constexpr T pi() {
-	return static_cast<T>(3.14159265358979323846); 
+	return static_cast<T>(3.14159265358979323846);
 }
 
 template <typename T>
-constexpr T e() { 
+constexpr T e() {
 	return static_cast<T>(2.71828182845904523536);
 }
 
@@ -39,3 +40,5 @@ template <typename T>
 T degree_cast(T rad) {
 	return rad * static_cast<T>(180) / pi<T>();
 }
+
+} // namespace gtm
